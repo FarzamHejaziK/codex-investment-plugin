@@ -1,0 +1,44 @@
+{
+  "name": "codex-investment-plugin",
+  "version": "0.1.0",
+  "description": "Codex plugin for personal investment strategy workspaces, Alpaca portfolio checks, daily memos, and optional user-confirmed trade execution.",
+  "author": {
+    "name": "Farzam Hejazi",
+    "email": "farzam.hejazi@gmail.com",
+    "url": "https://github.com/FarzamHejaziK"
+  },
+  "homepage": "https://github.com/FarzamHejaziK/codex-investment-plugin",
+  "repository": "https://github.com/FarzamHejaziK/codex-investment-plugin",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "investment",
+    "alpaca",
+    "trading",
+    "portfolio",
+    "research"
+  ],
+  "interface": {
+    "displayName": "Codex Investment Assistant",
+    "shortDescription": "Run investment strategy workspaces with Alpaca-backed daily memos.",
+    "longDescription": "A Codex plugin adaptation of the Claude Investment Assistant. It keeps the strategy-file workflow, setup wizard, daily memo, help, and strategy-builder behavior, while adding an optional user-confirmed trading mode for Alpaca order execution.",
+    "developerName": "Farzam Hejazi",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/FarzamHejaziK/codex-investment-plugin",
+    "privacyPolicyURL": "https://github.com/FarzamHejaziK/codex-investment-plugin/blob/main/SECURITY.md",
+    "termsOfServiceURL": "https://github.com/FarzamHejaziK/codex-investment-plugin/blob/main/LICENSE",
+    "defaultPrompt": [
+      "Set up my investment assistant workspace",
+      "Run my daily investment checkpoint",
+      "Create a new investment strategy"
+    ],
+    "brandColor": "#2563EB",
+    "logo": "./docs/assets/logo.png",
+    "screenshots": []
+  }
+}
