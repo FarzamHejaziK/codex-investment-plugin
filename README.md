@@ -21,7 +21,9 @@
 
 ## About
 
-`codex-investment-plugin` is a Codex plugin for running personal investment strategy workspaces. It keeps strategies as plain markdown files, pulls Alpaca portfolio data through MCP, writes daily research and trade-proposal memos, and supports an optional confirmation-gated trading mode.
+`codex-investment-plugin` is a Codex plugin that automates your investing routine every morning. Rules over emotion. No fear, no FOMO. It ships with three default strategies — dip-buying, AI value-chain DCA, and mean-reversion active trading — and helps you build your own if you'd like.
+
+The plugin keeps strategies as plain markdown files, pulls Alpaca portfolio data through MCP, writes daily research and trade-proposal memos, and supports an optional confirmation-gated trading mode.
 
 The plugin is designed for user-authored rules, transparent journals, and explicit human control. It is not financial advice, not a robo-advisor, and not an autonomous trading system.
 
@@ -111,7 +113,7 @@ All ship `status: paused` for safety. Setup can copy and configure them, but the
 | `/investment:new-strategy` | Whenever you want a new strategy | Interactive Q&A; writes a paused strategy file in the workspace |
 | `/investment:help` | Anytime you're unsure | Conversational guide for orientation, strategy design, and troubleshooting |
 
-Commands live in [`commands/investment/`](commands/investment/). They are markdown prompts, so you can inspect or adapt them.
+Commands live in [`commands/`](commands/). They are markdown prompts, so you can inspect or adapt them. The plugin manifest name is `investment`, so the intended Codex command namespace is `/investment:*`.
 
 ## File Layout
 
@@ -119,7 +121,7 @@ Commands live in [`commands/investment/`](commands/investment/). They are markdo
 codex-investment-plugin/
 ├── .codex-plugin/
 │   └── plugin.json
-├── commands/investment/
+├── commands/
 │   ├── setup.md
 │   ├── daily.md
 │   ├── new-strategy.md

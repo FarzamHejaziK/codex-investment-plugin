@@ -13,10 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     ".codex-plugin/plugin.json",
-    "commands/investment/setup.md",
-    "commands/investment/daily.md",
-    "commands/investment/new-strategy.md",
-    "commands/investment/help.md",
+    "commands/setup.md",
+    "commands/daily.md",
+    "commands/new-strategy.md",
+    "commands/help.md",
     "scripts/workspace-bootstrap.py",
     "scripts/alpaca-mcp-wrapper.sh",
     "scripts/validate-plugin.py",
@@ -81,7 +81,7 @@ def main() -> int:
         errors.append(f"plugin.json is invalid: {exc}")
         manifest = {}
 
-    require(manifest.get("name") == "codex-investment-plugin", "plugin.json name must be codex-investment-plugin", errors)
+    require(manifest.get("name") == "investment", "plugin.json name must be investment", errors)
     require(bool(manifest.get("interface", {}).get("defaultPrompt")), "plugin.json needs interface.defaultPrompt", errors)
 
     for rel in REQUIRED_FILES:
@@ -94,14 +94,22 @@ def main() -> int:
         content = strategy.read_text(encoding="utf-8")
         require("status: paused" in content, f"{strategy.relative_to(ROOT)} must ship paused", errors)
 
-    daily = (ROOT / "commands/investment/daily.md").read_text(encoding="utf-8")
+    daily = (ROOT / "commands/daily.md").read_text(encoding="utf-8")
     require("trading-with-confirmation" in daily, "daily command must document trading-with-confirmation mode", errors)
     require("EXECUTE" in daily, "daily command must require exact EXECUTE confirmation", errors)
     require("workspace-bootstrap.py" in daily, "daily command must run workspace bootstrap", errors)
 
-    setup = (ROOT / "commands/investment/setup.md").read_text(encoding="utf-8")
+    setup = (ROOT / "commands/setup.md").read_text(encoding="utf-8")
     require("workspace-bootstrap.py" in setup, "setup command must run workspace bootstrap", errors)
     require("proposal-only" in setup, "setup command must configure proposal-only mode", errors)
+
+    nested_commands = list((ROOT / "commands").glob("*/*.md"))
+    require(not nested_commands, "commands must be top-level commands/*.md files for Codex plugin command discovery", errors)
+
+    for command in (ROOT / "commands").glob("*.md"):
+        content = command.read_text(encoding="utf-8")
+        require(content.startswith("---\n"), f"{command.relative_to(ROOT)} should start with YAML frontmatter", errors)
+        require("description:" in content.split("---", 2)[1], f"{command.relative_to(ROOT)} needs frontmatter description", errors)
 
     for path in text_files():
         rel = str(path.relative_to(ROOT))

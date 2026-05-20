@@ -1,5 +1,10 @@
+---
+description: Set up the investment workspace, Alpaca MCP, paper/live mode, execution mode, and example strategies.
+---
 
-# First-time setup
+# /investment:setup
+
+First-time setup.
 
 You are walking a non-programmer through setting up this workspace. Be patient, ask one thing at a time, confirm progress before moving on, and explain *why* at each step.
 

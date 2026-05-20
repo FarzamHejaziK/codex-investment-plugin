@@ -68,7 +68,7 @@ A: Usually paper/live mismatch. See [Alpaca setup](alpaca-setup.md).
 A: Check Alpaca directly, then check whether you placed orders outside the memo. The daily run should flag reconciliation drift.
 
 **Q: Slash commands are missing.**
-A: Restart Codex and confirm the plugin repo contains `commands/investment/*.md`.
+A: Restart Codex and confirm the plugin repo contains `commands/*.md`. The plugin manifest name is `investment`, so the intended commands are `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
 
 **Q: Can I ask general questions without a command?**
 A: Yes. `AGENTS.md` gives Codex the workspace context.

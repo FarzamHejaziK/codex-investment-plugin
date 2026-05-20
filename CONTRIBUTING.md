@@ -4,7 +4,7 @@ This repo is a Codex plugin adapted from the Claude Investment Assistant templat
 
 ## Helpful contributions
 
-- Bug fixes in `commands/investment/*.md`
+- Bug fixes in `commands/*.md`
 - Workspace bootstrap improvements
 - Alpaca setup and MCP troubleshooting improvements
 - Documentation fixes

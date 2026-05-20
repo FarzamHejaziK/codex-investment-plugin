@@ -8,7 +8,7 @@
   - `upstream` points at `https://github.com/FarzamHejaziK/claude-investment-assistant.git`
   - upstream push URL is disabled locally to avoid accidentally pushing Codex changes back to the Claude repo
 - Added Codex plugin manifest: `.codex-plugin/plugin.json`
-- Added Codex commands in `commands/investment/`
+- Added Codex commands in `commands/`
 - Added workspace bootstrap, Alpaca wrapper, and validation scripts in `scripts/`
 - Added Codex docs for workspace bootstrap and trading mode
 - Removed the Claude runtime command/config directory from the Codex plugin
@@ -61,11 +61,10 @@ codex-investment-plugin/
 ├── .codex-plugin/
 │   └── plugin.json
 ├── commands/
-│   └── investment/
-│       ├── setup.md
-│       ├── daily.md
-│       ├── new-strategy.md
-│       └── help.md
+│   ├── setup.md
+│   ├── daily.md
+│   ├── new-strategy.md
+│   └── help.md
 ├── scripts/
 │   ├── workspace-bootstrap.py
 │   ├── alpaca-mcp-wrapper.sh
@@ -95,7 +94,7 @@ codex-investment-plugin/
 
 Notes:
 
-- `commands/investment/*.md` should preserve the Claude command namespace shape so the intended Codex command names remain `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
+- `commands/*.md` plus plugin manifest name `investment` provide the intended Codex command names: `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
 - `AGENTS.md` replaces `CLAUDE.md` as the Codex workspace guidance file.
 - Keep `.claude/` out of the final repo unless we intentionally support both Claude and Codex. The user request is to change Claude to Codex.
 - Keep the three example strategies functionally identical to upstream, including `status: paused` defaults.
@@ -112,10 +111,10 @@ Notes:
 2. Record the upstream commit in `CHANGELOG.md` and `README.md`.
 3. Keep source wording identical wherever possible.
 4. Build a parity checklist:
-   - `.claude/commands/investment/setup.md` -> `commands/investment/setup.md`
-   - `.claude/commands/investment/daily.md` -> `commands/investment/daily.md`
-   - `.claude/commands/investment/new-strategy.md` -> `commands/investment/new-strategy.md`
-   - `.claude/commands/investment/help.md` -> `commands/investment/help.md`
+   - `.claude/commands/investment/setup.md` -> `commands/setup.md`
+   - `.claude/commands/investment/daily.md` -> `commands/daily.md`
+   - `.claude/commands/investment/new-strategy.md` -> `commands/new-strategy.md`
+   - `.claude/commands/investment/help.md` -> `commands/help.md`
    - `CLAUDE.md` -> `AGENTS.md`
    - `.claude/settings.json` -> Codex setup guidance plus optional `.mcp.json` if the Codex plugin runtime supports bundling MCP server declarations
 5. Add a small validation script that reports any source files not yet converted.
@@ -136,7 +135,7 @@ For each command:
    - `Claude` -> `Codex`
    - `claude mcp ...` -> `codex mcp ...`
    - `/mcp` references -> the Codex-equivalent MCP inspection flow
-   - `.claude/commands/investment/` -> `commands/investment/`
+   - `.claude/commands/investment/` -> `commands/`
    - `.claude/settings.json` -> Codex MCP / plugin permission setup
 3. Preserve the user-facing workflow:
    - `/investment:setup` remains the setup wizard.
@@ -448,7 +447,7 @@ Acceptance criteria:
 
 Completed in this pass:
 
-1. Create `commands/investment/` and convert the four upstream command files.
+1. Create `commands/` and convert the four upstream command files.
 2. Add `AGENTS.md` from `CLAUDE.md`, adapted to Codex and optional trading mode.
 3. Add `scripts/workspace-bootstrap.py`.
 4. Update `README.md` and `docs/getting-started.md`.

@@ -35,7 +35,7 @@ You don't need them to invoke `/investment:help` to be helpful — just help. Su
 - `scripts/workspace-bootstrap.py` — creates or locates the user's persistent workspace. Run this before reading or writing user data.
 - `<workspace>/strategies/` — user's investment rules. One file per strategy. YAML frontmatter declares `status` (`paused` / `active` / `archived`), `account`, `capital_monthly_usd`. `*.example.md` files are inert templates.
 - `<workspace>/journal/` — dated memos written by `/investment:daily`. Read-only history except for explicit correction notes and execution records.
-- `commands/investment/` — the four slash commands (`setup`, `daily`, `new-strategy`, `help`).
+- `commands/` — the four slash commands (`setup`, `daily`, `new-strategy`, `help`). The plugin manifest name is `investment`, so these are intended as `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
 - `.codex-plugin/plugin.json` — Codex plugin metadata.
 - `docs/` — `getting-started.md`, `alpaca-setup.md`, `designing-a-strategy.md`, `faq.md`, `safety-and-limits.md`.
 - `README.md`, `CHANGELOG.md`, `LICENSE` — repo metadata.

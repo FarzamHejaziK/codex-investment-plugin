@@ -1,5 +1,10 @@
+---
+description: Build a new paused investment strategy file in the persistent workspace through guided Q&A.
+---
 
-# Interactive strategy builder
+# /investment:new-strategy
+
+Interactive strategy builder.
 
 You are helping the user create a new investment strategy file. Walk them through it like a conversation — **one question at a time**, wait for their answer, then move on. Don't dump all the questions at once. Don't write the file until the user has answered everything and approved the draft.
 

@@ -6,7 +6,7 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 ### Added
 - Codex plugin manifest in `.codex-plugin/plugin.json`.
-- Codex command prompts in `commands/investment/`.
+- Codex command prompts in `commands/` with plugin namespace `investment`.
 - Persistent workspace bootstrap script and documentation.
 - Optional `trading-with-confirmation` mode for exact user-confirmed Alpaca order batches.
 - Validation script for plugin shape and stale Claude runtime references.
