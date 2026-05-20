@@ -86,7 +86,7 @@ Where `deployed_in_cycle` is the running sum of buys into this target since the 
 - No margin, no options, no leverage.
 - No instruments outside VTI / QQQ / SGOV.
 - Never average down on a thesis break.
-- The `/investment:daily` command proposes orders only; **you execute every trade manually** in Alpaca.
+- The `/investment:daily` command proposes orders by default; in trading-with-confirmation mode, Codex may submit only the exact order batch the user confirms.
 
 ## Open questions / things to revisit
 

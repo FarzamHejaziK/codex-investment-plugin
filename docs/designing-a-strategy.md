@@ -1,10 +1,10 @@
 # Designing a strategy
 
-Every strategy in this workspace is a single markdown file in `./strategies/`. The `/investment:daily` command reads each file with `status: active`, follows its rules, and proposes today's orders.
+Every strategy is a single markdown file in `<workspace>/strategies/`. The `/investment:daily` command reads each file with `status: active`, follows its rules, and proposes today's orders. In trading-with-confirmation mode, it may submit only the exact proposed order batch the user confirms.
 
 This doc explains the anatomy of a strategy file so you can write your own or modify the examples.
 
-For an interactive builder, use `/investment:new-strategy` — it asks questions and generates a file for you.
+For an interactive builder, use `/investment:new-strategy` — it asks questions and generates a paused file in your workspace.
 
 ## File structure at a glance
 
@@ -55,7 +55,7 @@ These keys control how `/investment:daily` treats the strategy.
 
 ## The body sections
 
-The body is markdown — write it however you want, but `/investment:daily` looks for certain section names. The required ones are:
+The body is markdown. Write it however you want, but `/investment:daily` looks for certain section names. The required ones are:
 
 ### `## Profile`
 

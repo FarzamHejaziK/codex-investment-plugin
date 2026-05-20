@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This is a **personal investment workspace** built on top of Claude Code + the Alpaca MCP. The user defines strategies in `strategies/*.md` files; the `/investment:daily` slash command reads them, pulls portfolio state from Alpaca (read-only), and proposes orders that the user executes manually in Alpaca.
+This is a **Codex plugin for personal investment workspaces** built on top of Codex + the Alpaca MCP. The user defines strategies in a persistent workspace under `strategies/*.md`; the `/investment:daily` slash command reads them, pulls portfolio state from Alpaca, writes a journal memo, and proposes orders. In the default `proposal-only` mode the user executes orders manually. In `trading-with-confirmation` mode, `/investment:daily` may submit only the exact order batch the user confirms.
 
 ## How to behave by default
 
@@ -23,8 +23,8 @@ You don't need them to invoke `/investment:help` to be helpful — just help. Su
 
 ## Hard rules — apply in every interaction in this workspace
 
-1. **Never execute trades.** Order-placement Alpaca tools are denied at the permission layer in `.claude/settings.json`, but the rule stands regardless: your job is to propose, never execute. The user trades in Alpaca themselves.
-2. **Read-only Alpaca calls only.** Positions, account, activity, quotes, bars — yes. `place_*`, `close_*`, `cancel_*`, `replace_*`, `exercise_*` — never.
+1. **Default to proposal-only.** Do not place trades unless `/investment:daily` is running in `trading-with-confirmation` mode and the user has typed the exact confirmation phrase for the displayed order batch.
+2. **Use read-only Alpaca calls for analysis.** Positions, account, activity, quotes, bars — yes. Order-placement tools are allowed only inside the confirmed execution section of `/investment:daily`.
 3. **Don't auto-edit operational sections of any `strategies/<name>.md`.** Frontmatter, Watchlist/Universe, Buy strategy, Sizing rules, Risk rules — the user evolves these manually. The one exception is "Live research notes" sections on strategies with `auto_research: daily`, and only `/investment:daily` does that appending.
 4. **Never put API keys anywhere in this workspace.** Not in `.env`, not in strategy files, not in journal entries, not in chat. Keys live in the OS keyring only.
 5. **Don't fabricate data.** If Alpaca MCP isn't connected, say so. If a quote is stale, say so. An honest short answer beats a confident wrong one.
@@ -32,10 +32,11 @@ You don't need them to invoke `/investment:help` to be helpful — just help. Su
 
 ## Workspace map
 
-- `strategies/` — user's investment rules. One file per strategy. YAML frontmatter declares `status` (`paused` / `active` / `archived`), `account`, `capital_monthly_usd`. `*.example.md` files are inert templates.
-- `journal/` — dated memos written by `/investment:daily`. Read-only history.
-- `.claude/commands/investment/` — the four slash commands (`setup`, `daily`, `new-strategy`, `help`).
-- `.claude/settings.json` — tool permissions. Allows read-only Alpaca + standard file/web tools; denies order-placement tools.
+- `scripts/workspace-bootstrap.py` — creates or locates the user's persistent workspace. Run this before reading or writing user data.
+- `<workspace>/strategies/` — user's investment rules. One file per strategy. YAML frontmatter declares `status` (`paused` / `active` / `archived`), `account`, `capital_monthly_usd`. `*.example.md` files are inert templates.
+- `<workspace>/journal/` — dated memos written by `/investment:daily`. Read-only history except for explicit correction notes and execution records.
+- `commands/investment/` — the four slash commands (`setup`, `daily`, `new-strategy`, `help`).
+- `.codex-plugin/plugin.json` — Codex plugin metadata.
 - `docs/` — `getting-started.md`, `alpaca-setup.md`, `designing-a-strategy.md`, `faq.md`, `safety-and-limits.md`.
 - `README.md`, `CHANGELOG.md`, `LICENSE` — repo metadata.
 

@@ -1,168 +1,160 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="Claude Investment Assistant" width="520" />
+<img src="docs/assets/logo.png" alt="Codex Investment Assistant" width="520" />
 
-# investment-assistant
+# codex-investment-plugin
 
-**A workspace template for designing, tracking, and running personal investment strategies with [Claude Code](https://claude.com/claude-code) and [Alpaca](https://alpaca.markets/).**
+**A Codex plugin for designing, tracking, and running personal investment strategies with Alpaca.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/FarzamHejaziK/claude-investment-assistant?style=social)](https://github.com/FarzamHejaziK/claude-investment-assistant/stargazers)
-[![Last commit](https://img.shields.io/github/last-commit/FarzamHejaziK/claude-investment-assistant)](https://github.com/FarzamHejaziK/claude-investment-assistant/commits/main)
-[![Open issues](https://img.shields.io/github/issues/FarzamHejaziK/claude-investment-assistant)](https://github.com/FarzamHejaziK/claude-investment-assistant/issues)
-[![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-orange)](https://claude.com/claude-code)
+[![GitHub stars](https://img.shields.io/github/stars/FarzamHejaziK/codex-investment-plugin?style=social)](https://github.com/FarzamHejaziK/codex-investment-plugin/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/FarzamHejaziK/codex-investment-plugin)](https://github.com/FarzamHejaziK/codex-investment-plugin/commits/main)
+[![Open issues](https://img.shields.io/github/issues/FarzamHejaziK/codex-investment-plugin)](https://github.com/FarzamHejaziK/codex-investment-plugin/issues)
+[![Built for Codex](https://img.shields.io/badge/built%20for-Codex-blue)](https://openai.com/codex)
 [![Powered by Alpaca](https://img.shields.io/badge/powered%20by-Alpaca-purple)](https://alpaca.markets/)
 
-[Quick start](#quick-start) • [Documentation](#documentation) • [Examples](#the-three-example-strategies) • [FAQ](docs/faq.md) • [Safety](docs/safety-and-limits.md)
+[Quick start](#quick-start) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
 
 </div>
 
 ---
 
-You define your rules in markdown files. Each morning you run one command (`/investment:daily`). It reads your portfolio, checks your rules, and tells you exactly what to buy or sell today. **You execute every trade yourself** — this tool proposes; it doesn't trade on your behalf.
+You define your rules in markdown strategy files. Each market day you run `/investment:daily`. It reads your Alpaca portfolio, checks your rules, writes a dated journal memo, and tells you exactly what the rules propose today.
 
-> ⚠️ **This is not financial advice.** This is a tool for organizing and tracking *your own* investment decisions. It does not place trades automatically. Past performance does not guarantee future results. **Pick paper or live trading when you run `/investment:setup` — both are fully supported.** If you pick live, you're using real money; understand the risks before you do. Read [`docs/safety-and-limits.md`](docs/safety-and-limits.md).
+By default, it is **proposal-only**: Codex writes the memo and you place orders yourself in Alpaca. If you explicitly choose **trading-with-confirmation** during setup, `/investment:daily` may submit only the exact order batch shown in chat after you type the exact confirmation phrase.
+
+> **This is not financial advice.** This is a tool for organizing and tracking your own investment decisions. Past performance does not guarantee future results. If you use live Alpaca credentials or trading-with-confirmation mode, real money can move. Read [Safety and limits](docs/safety-and-limits.md) and [Trading mode](docs/trading-mode.md) first.
 
 ---
 
-## What it does
+## What It Does
 
-1. You write strategy rules in `./strategies/<name>.md` files — using plain English plus a YAML header. Three working examples are included.
-2. Each market day, you run `/investment:daily` in Claude Code. The command:
-   - Pulls your live Alpaca portfolio (read-only)
-   - Evaluates each active strategy's rules
-   - Writes a dated memo to `./journal/<today>.md`
-   - Tells you "BUY $50 of VTI today" or "no action needed" — with reasoning
-3. You open Alpaca and place the proposed orders yourself.
-4. Next day, the tool reconciles what you actually placed and proposes the next action.
+1. Creates or reuses a persistent workspace for your personal files.
+2. Seeds example strategy files into `<workspace>/strategies/`.
+3. Runs four Codex slash commands:
+   - `/investment:setup`
+   - `/investment:daily`
+   - `/investment:new-strategy`
+   - `/investment:help`
+4. Pulls Alpaca account state and market data through the Alpaca MCP.
+5. Writes daily memos to `<workspace>/journal/`.
+6. Optionally submits confirmed Alpaca orders when trading-with-confirmation mode is enabled.
 
-That's the whole loop. Patient, mechanical, and yours to customize.
+## What It Does Not Do
 
-## What it does NOT do
+- It does not provide financial advice.
+- It does not invent securities outside your strategy files.
+- It does not trade by default.
+- It does not place orders from setup, help, or strategy-builder commands.
+- It does not silently edit operational strategy rules.
 
-- ❌ Place trades for you (intentionally — see [`docs/safety-and-limits.md`](docs/safety-and-limits.md))
-- ❌ Pick stocks or strategies for you (it follows YOUR rules)
-- ❌ Provide financial advice
-- ❌ Auto-modify your strategy files (it can suggest changes, you decide)
+## Quick Start
 
-## Quick start
+### What You Need
 
-### What you need
-- An [Alpaca account](https://alpaca.markets/) (paper trading is free, no funding required)
-- [Claude Code](https://claude.com/claude-code) installed
-- About 30 minutes for one-time setup
+- An [Alpaca account](https://alpaca.markets/) for paper or live trading.
+- Codex with plugin support.
+- `uv` / `uvx` for the Alpaca MCP server.
+- About 30 minutes for first-time setup.
 
-### 5 steps
+### 5 Steps
 
-1. **Click the green "Use this template" button** at the top of this repo, create your own copy (make it private if you want).
-2. **Clone it** locally (replace `<your-github-username>` and `<your-repo-name>` with whatever you used when you clicked "Use this template"):
+1. Install or clone this plugin repo:
+
    ```bash
-   git clone https://github.com/<your-github-username>/<your-repo-name>.git
-   cd <your-repo-name>
+   git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
+   cd codex-investment-plugin
    ```
-3. **Open the folder in Claude Code** (File → Open).
-4. **Run `/investment:setup`** in the chat. The wizard:
-   - Asks **paper or live** up front (both fully supported)
-   - Walks you through Alpaca API keys → OS keyring storage → connector install → connection verification
-   - Walks you through **each example strategy** and asks **your monthly budget** per strategy, then configures the files for you
-5. **Run `/investment:daily`** to start the loop. (If you kept everything paused during setup, open a strategy file and change `status: paused` → `status: active` first.)
 
-Or create your own: run `/investment:new-strategy` for an interactive builder.
+2. Open the plugin repo in Codex.
 
-**Stuck or unsure?** Run `/investment:help` anytime. It's a conversational guide — ask about how the workspace fits together, what a command does, or talk through a strategy idea before building it. You can also just chat with Claude directly in this workspace; the same guidance is loaded via `CLAUDE.md`.
+3. Run `/investment:setup`. The wizard:
+   - Creates or locates your persistent workspace.
+   - Asks paper or live.
+   - Asks proposal-only or trading-with-confirmation.
+   - Walks you through Alpaca API keys and Codex MCP setup.
+   - Copies example strategies into your workspace and asks which to configure.
 
-Full walkthrough for non-programmers: [`docs/getting-started.md`](docs/getting-started.md).
+4. Activate at least one strategy when ready:
+   - Open `<workspace>/strategies/<name>.md`.
+   - Set `status: active`.
+   - Confirm `capital_monthly_usd` matches your intended budget.
 
-## The three example strategies
+5. Run `/investment:daily`.
 
-All ship `status: paused` for safety. Activate by renaming and editing the frontmatter.
+The workspace path is stored in `~/.codex-investment-plugin/config.json`. Override it anytime by setting `CODEX_INVESTMENT_WORKSPACE=/path/to/workspace` before running a command.
+
+## The Three Example Strategies
+
+All ship `status: paused` for safety. Setup can copy and configure them, but the user decides whether to activate.
 
 | File | Style | Risk | Good for |
 |---|---|---|---|
 | [`dip-buying.example.md`](strategies/dip-buying.example.md) | Continuous-formula dip-buying on broad ETFs (VTI, QQQ). Buy-only. | Low | Long-term accumulation with opportunistic dip overlay |
-| [`ai-value-chain.example.md`](strategies/ai-value-chain.example.md) | Monthly equal-weight DCA across 8 AI infrastructure picks-and-shovels names. Buy-only. Daily research. | Medium (basket concentration) | Themed long-term exposure beyond mega-cap names |
-| [`active-trading.example.md`](strategies/active-trading.example.md) | Daily-checkpoint mean reversion on Mag 10 + ETFs. Buy AND sell. Quarterly review. | **High** | Experimentation — most retail active traders underperform |
+| [`ai-value-chain.example.md`](strategies/ai-value-chain.example.md) | Monthly equal-weight DCA across 8 AI infrastructure picks-and-shovels names. Buy-only. Daily research. | Medium | Themed long-term exposure beyond mega-cap names |
+| [`active-trading.example.md`](strategies/active-trading.example.md) | Daily-checkpoint mean reversion on Mag 10 + ETFs. Buy and sell. Quarterly review. | High | Experimentation with capital you can afford to lose |
 
-Read each file to understand what it does before activating.
-
-## Slash commands
+## Slash Commands
 
 | Command | When to run | What it does |
 |---|---|---|
-| `/investment:setup` | Once, after cloning | First-time wizard: Alpaca API keys, OS keyring storage, MCP wiring, connection verification |
-| `/investment:daily` | Every market morning | Reads strategies → pulls portfolio → proposes today's orders → writes journal entry |
-| `/investment:new-strategy` | Whenever you want a new strategy | Interactive Q&A; outputs a strategy file in `./strategies/` |
-| `/investment:help` | Anytime you're unsure | Conversational guide — orientation, how a command works, talk through designing or modifying a strategy, troubleshooting |
+| `/investment:setup` | Once, after install | Workspace bootstrap, Alpaca keys, MCP wiring, connection verification, strategy configuration |
+| `/investment:daily` | Every market morning | Reads strategies, pulls portfolio, proposes orders, writes journal entry, optionally submits confirmed orders |
+| `/investment:new-strategy` | Whenever you want a new strategy | Interactive Q&A; writes a paused strategy file in the workspace |
+| `/investment:help` | Anytime you're unsure | Conversational guide for orientation, strategy design, and troubleshooting |
 
-These commands live in `./.claude/commands/investment/`. They're plain markdown — read them to understand what each does, or modify them to change behavior.
+Commands live in [`commands/investment/`](commands/investment/). They are markdown prompts, so you can inspect or adapt them.
 
-You can also just chat with Claude in this workspace without invoking a command. The `CLAUDE.md` at the repo root primes Claude with the workspace's safety rules and pointers, so conversational questions ("what does this strategy do?", "should I lower my monthly budget?") work out of the box.
+## File Layout
 
-## File layout
-
+```text
+codex-investment-plugin/
+├── .codex-plugin/
+│   └── plugin.json
+├── commands/investment/
+│   ├── setup.md
+│   ├── daily.md
+│   ├── new-strategy.md
+│   └── help.md
+├── scripts/
+│   ├── workspace-bootstrap.py
+│   ├── alpaca-mcp-wrapper.sh
+│   └── validate-plugin.py
+├── strategies/
+│   └── *.example.md
+├── journal/
+│   └── .gitkeep
+├── docs/
+├── AGENTS.md
+└── README.md
 ```
-your-investment-workspace/
-├── .claude/
-│   ├── commands/
-│   │   └── investment/            (the slash commands — namespaced as /investment:*)
-│   │       ├── setup.md
-│   │       ├── daily.md
-│   │       ├── new-strategy.md
-│   │       └── help.md
-│   └── settings.json              (tool permissions — denies Alpaca order endpoints by default)
-├── strategies/                    (your investment rules — one file per strategy)
-│   ├── *.example.md               (paused examples that ship with the template)
-│   └── (your active strategies)
-├── journal/                       (daily memos — auto-generated by /investment:daily)
-├── docs/                          (documentation)
-│   ├── getting-started.md
-│   ├── alpaca-setup.md
-│   ├── designing-a-strategy.md
-│   ├── faq.md
-│   └── safety-and-limits.md
-├── CLAUDE.md                      (workspace context loaded into every Claude Code session here)
-├── README.md                      (you are here)
-├── CONTRIBUTING.md                (how to contribute to the template itself)
-├── SECURITY.md                    (how to report security issues privately)
-├── LICENSE
-├── CHANGELOG.md
-└── .gitignore
-```
+
+User data lives in the resolved workspace, not in the installed plugin directory, unless you explicitly choose this repo as the workspace.
 
 ## Documentation
 
-- **[Getting started](docs/getting-started.md)** — 15-minute walkthrough for non-programmers
-- **[Alpaca setup](docs/alpaca-setup.md)** — Paper vs. live, generating keys, OS keyring storage, troubleshooting
-- **[Designing a strategy](docs/designing-a-strategy.md)** — Anatomy of a strategy file, the three archetypes, tips
-- **[FAQ](docs/faq.md)** — Common questions
-- **[Safety and limits](docs/safety-and-limits.md)** — What the tool will and won't do, risks per strategy archetype, disclaimer
+- [Getting started](docs/getting-started.md)
+- [Workspace bootstrap](docs/workspace-bootstrap.md)
+- [Alpaca setup](docs/alpaca-setup.md)
+- [Trading mode](docs/trading-mode.md)
+- [Designing a strategy](docs/designing-a-strategy.md)
+- [FAQ](docs/faq.md)
+- [Safety and limits](docs/safety-and-limits.md)
 
-## How it stays safe
+## Safety Model
 
 Three layers:
 
-1. **Settings layer.** `./claude/settings.json` explicitly denies the Alpaca MCP's order-placement tools (`mcp__alpaca__place_*`, `close_position`, `cancel_order`, etc.). Claude Code's permission system enforces this — the tool literally can't call them.
-2. **Prompt layer.** Every slash command's prompt explicitly says "never execute trades; read-only Alpaca calls only." If Claude tried to violate this, the prompt itself would catch it.
-3. **Strategy layer.** Each strategy file's "Hard rules" section enforces strategy-specific limits (buy-only, universe constraints, position caps).
+1. **Strategy layer.** Strategy files define allowed instruments, budget, sizing, and buy/sell scope.
+2. **Prompt layer.** `/investment:daily` must write the memo before any execution and cannot submit undisplayed orders.
+3. **Confirmation layer.** In trading-with-confirmation mode, the user must type `EXECUTE <N> ORDERS` for the exact displayed batch. Anything else stops execution.
 
-If you want to remove these safety layers (e.g., to enable auto-execution), you can — but you'd be doing so deliberately, with your eyes open. See [`docs/safety-and-limits.md`](docs/safety-and-limits.md) for why we don't recommend it.
+Proposal-only remains the default and safest mode.
+
+## Source Attribution
+
+This Codex plugin is adapted from [FarzamHejaziK/claude-investment-assistant](https://github.com/FarzamHejaziK/claude-investment-assistant), currently tracked as the `upstream` remote for parity updates.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE). You can fork, modify, sell, or do anything else permitted by MIT.
-
-## Contributing
-
-This is a template. The best way to "contribute" is to fork and adapt it for yourself. If you find bugs in the template itself (the commands, docs, or example strategies), see [`CONTRIBUTING.md`](CONTRIBUTING.md) for what's in scope and how to file issues or PRs.
-
-Security issues: see [`SECURITY.md`](SECURITY.md) — please report privately, not via public issues.
-
-## Built with
-
-- [Claude Code](https://claude.com/claude-code) — the CLI that runs the slash commands
-- [Alpaca](https://alpaca.markets/) — the brokerage and market data API
-- [alpaca-mcp-server](https://github.com/alpacahq/alpaca-mcp-server) — the MCP connector for Alpaca
-
----
-
-*This template is a starting point. The strategies are illustrative. Read each file before activating, customize freely, and remember: every trade is your decision.*
+MIT. See [LICENSE](LICENSE).

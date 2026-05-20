@@ -76,7 +76,7 @@ The `/investment:daily` run on those dates produces an extended Strategy notes s
 - No leverage, no options, no margin.
 - No instruments outside the universe above.
 - **Loss budget:** capital allocated to this strategy can fall to $0. Quarterly review is the only formal checkpoint.
-- **`/investment:daily` proposes orders only; you execute every trade manually in Alpaca.**
+- **`/investment:daily` proposes orders by default; in trading-with-confirmation mode, Codex may submit only the exact order batch the user confirms.**
 
 ## Open questions / things to revisit
 

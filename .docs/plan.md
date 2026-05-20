@@ -1,6 +1,6 @@
 # Codex Investment Assistant Public Plugin Plan
 
-## Current Scaffold State
+## Current Implementation State
 
 - Local repo path: `/Users/ferzamh/code-git-local/codex-investment-plugin`
 - Source baseline: `FarzamHejaziK/claude-investment-assistant` `main` at commit `9607f6b52214f20e340c1c27491766b78b7acc78`
@@ -8,7 +8,27 @@
   - `upstream` points at `https://github.com/FarzamHejaziK/claude-investment-assistant.git`
   - upstream push URL is disabled locally to avoid accidentally pushing Codex changes back to the Claude repo
 - Added Codex plugin manifest: `.codex-plugin/plugin.json`
+- Added Codex commands in `commands/investment/`
+- Added workspace bootstrap, Alpaca wrapper, and validation scripts in `scripts/`
+- Added Codex docs for workspace bootstrap and trading mode
+- Removed the Claude runtime command/config directory from the Codex plugin
 - This document is `.docs/plan.md`.
+
+## Implementation Status
+
+Implemented in this repo:
+
+- Phase 1: upstream parity baseline and source attribution
+- Phase 2: Codex command conversion
+- Phase 3: workspace bootstrap
+- Phase 4: Alpaca setup for Codex
+- Phase 5: optional trading-with-confirmation mode
+- Phase 6: documentation conversion
+- Phase 7: validation script and dry-run bootstrap testing path
+
+Remaining release operation:
+
+- Phase 8: tag a release after final manual review and any marketplace/install workflow checks.
 
 ## Product Goal
 
@@ -416,22 +436,17 @@ Acceptance criteria:
 7. Test install from the public repo.
 8. Update README badges from Claude repo to Codex repo.
 
-## Open Decisions
+## Resolved Decisions
 
-1. Should the plugin support both Codex and Claude in the same repo, or remove `.claude/` entirely?
-   - Recommendation: remove `.claude/` for the public Codex plugin.
-2. Should trading mode be configured only during setup, or also per daily run?
-   - Recommendation: store default mode in config, but require per-run confirmation for every order batch.
-3. Should workspace default to `~/Documents/codex-investment-plugin-workspace` or a hidden app-data path?
-   - Recommendation: `~/Documents/codex-investment-plugin-workspace` because users should be able to inspect strategy and journal files easily.
-4. Should the plugin support scheduled/automated daily runs?
-   - Recommendation: proposal-only can be scheduled later; trading mode must never auto-execute from a schedule.
-5. Should SGOV sell and target buy be submitted as one bracket-like sequence?
-   - Recommendation: no bracket. Submit SGOV sell first, wait for accepted/submitted status, then submit dependent buys only if funding conditions still pass.
+1. The public repo is Codex-only; `.claude/` is removed.
+2. Trading mode is stored in workspace config, and every order batch still requires per-run exact confirmation.
+3. The default workspace is `~/Documents/codex-investment-plugin-workspace`.
+4. Scheduled runs are not implemented in this pass. If added later, they must remain proposal-only unless a human is present to confirm execution.
+5. SGOV funding sells and target buys are treated as ordered legs, not bracket orders. Funding sells must be submitted before dependent buys.
 
 ## First Implementation Pass
 
-The next coding pass should do this in order:
+Completed in this pass:
 
 1. Create `commands/investment/` and convert the four upstream command files.
 2. Add `AGENTS.md` from `CLAUDE.md`, adapted to Codex and optional trading mode.

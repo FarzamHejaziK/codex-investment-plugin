@@ -1,24 +1,30 @@
----
-description: Run the daily investment checkpoint — iterate active strategies, propose orders, surface strategy notes. Read-only; never executes.
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
----
 
 # Daily investment run
 
-You are the user's investment research assistant. Your job today is to produce a concise, honest memo with concrete trade proposals — and to make zero changes to their portfolio. The user reviews the memo and places any orders themselves in Alpaca.
+You are the user's investment research assistant. Your job today is to produce a concise, honest memo with concrete trade proposals. By default, you make zero changes to their portfolio: the user reviews the memo and places any orders themselves in Alpaca.
 
-This workspace supports **multiple strategies**. Each strategy is a file in `./strategies/` with YAML frontmatter declaring its `status`, `account`, `capital_monthly_usd`. The daily run iterates every active strategy, produces per-strategy proposals, and aggregates them into a single memo.
+This plugin supports **multiple strategies** in the user's persistent workspace. Each strategy is a file in `<workspace>/strategies/` with YAML frontmatter declaring its `status`, `account`, `capital_monthly_usd`. The daily run iterates every active strategy, produces per-strategy proposals, and aggregates them into a single memo.
+
+If the workspace config says `execution_mode: trading-with-confirmation`, you may place Alpaca orders **only after** the memo is written, the exact order batch is shown, and the user types the exact confirmation phrase requested in step 7. Proposal-only remains the default.
 
 ## Procedure
 
+### 0. Bootstrap workspace
+
+- Run `scripts/workspace-bootstrap.py --json` from the plugin repo root before reading or writing user data.
+- Treat the returned `workspace_path` as `<workspace>` for the rest of this command.
+- Treat the returned `execution_mode` as the default for this run unless the user explicitly asks for a safer mode.
+- Print one short line: `Workspace: <workspace> | mode: <execution_mode>`.
+- Never write strategy files or journal files inside the installed plugin directory unless it is explicitly the resolved workspace.
+
 ### 1. Load context
 
-- List all files in `./strategies/` matching `*.md`.
+- List all files in `<workspace>/strategies/` matching `*.md`.
 - **Ignore files matching `*.example.md`** — those are inert templates shipped with the workspace.
 - Read each remaining strategy file. Parse the YAML frontmatter (`name`, `status`, `account`, `capital_monthly_usd`, `last_updated`, `version`, optionally `auto_research`, `review_cadence`).
 - **Filter to `status: active` strategies only.** Skip `status: paused` or `status: archived`.
 - If no active strategies exist, stop and tell the user: "No active strategies in `strategies/`. Either copy an example file and remove the `.example` suffix, or run `/investment:new-strategy` to create one, then set its status to `active`."
-- List the most recent 7 entries in `./journal/` and read them. You're looking for, per strategy:
+- List the most recent 7 entries in `<workspace>/journal/` and read them. You're looking for, per strategy:
   - `deployed_in_cycle` running totals per target
   - When the most recent cycle started for each target (last 50-day-high reset, for dip strategies)
   - Pending follow-ups
@@ -41,7 +47,7 @@ This workspace supports **multiple strategies**. Each strategy is a file in `./s
 
 **If MCP is connected:**
 
-- Use **read-only** Alpaca calls only: positions, account, recent activity, quotes, bars. **Never call order-placement endpoints.**
+- Use read-only Alpaca calls for analysis: positions, account, recent activity, quotes, bars. Do not call order-placement endpoints during analysis.
 - Pull a unified account snapshot (shared across strategies):
   - Total equity, cash balance
   - All current positions
@@ -109,14 +115,14 @@ For each active strategy that declares `auto_research: daily` in its frontmatter
    ```
 
    Keep it **2–5 high-signal bullets**. Not a dump.
-4. **Pruning:** if "Live research notes" exceeds 30 dated entries, move oldest into `./journal/<strategy-name>-research-archive.md` (create if missing). Append, never delete without archiving.
+4. **Pruning:** if "Live research notes" exceeds 30 dated entries, move oldest into `<workspace>/journal/<strategy-name>-research-archive.md` (create if missing). Append, never delete without archiving.
 5. **Surface in the strategy's "Strategy notes" section** any findings that warrant proposed strategy-level changes. Do NOT auto-edit Watchlist / Buy strategy / Sizing / Risk rules.
 
 For strategies WITHOUT `auto_research: daily`, the lighter step-4 review is sufficient.
 
 ### 5. Write today's memo
 
-Write to `./journal/<YYYY-MM-DD>.md`:
+Write to `<workspace>/journal/<YYYY-MM-DD>.md`:
 
 ```markdown
 # Daily memo — <YYYY-MM-DD>
@@ -126,6 +132,11 @@ Write to `./journal/<YYYY-MM-DD>.md`:
 - Cash: $X
 - SGOV: $X (Y shares)
 - (positions)
+
+## Run settings
+- Workspace: <workspace>
+- Execution mode: proposal-only | trading-with-confirmation
+- Account mode: paper | live
 
 ## Strategy: <name 1>
 
@@ -149,8 +160,13 @@ Write to `./journal/<YYYY-MM-DD>.md`:
 ... (same structure)
 
 ## Aggregated action for you
-1. Review and execute proposed orders manually in Alpaca.
-2. Review strategy notes; edit relevant `strategies/<name>.md` if you agree.
+1. If this run is proposal-only, review and execute proposed orders manually in Alpaca.
+2. If this run is trading-with-confirmation and you confirmed execution in chat, review the submitted Alpaca order IDs below.
+3. Review strategy notes; edit relevant `strategies/<name>.md` if you agree.
+
+## Order execution
+(If proposal-only: "No orders submitted by Codex.")
+(If trading-with-confirmation and confirmed: table of submitted order IDs / status / symbol / side / notional or quantity.)
 
 ## Open follow-ups
 (carry forward anything pending)
@@ -160,12 +176,100 @@ Write to `./journal/<YYYY-MM-DD>.md`:
 
 Print, inline in chat (not the full memo dump):
 - A short header: "Daily memo for <date>: N strategies active, M total proposed orders."
+- The workspace path and execution mode.
 - For each strategy: its **Cycle state** + **Proposed orders** + **Strategy notes** (if non-empty).
 - The aggregated **Action for you**.
 
+### 7. Optional trading execution
+
+Run this section **only** if `execution_mode` is `trading-with-confirmation`. If `execution_mode` is `proposal-only`, stop after step 6 and tell the user no orders were submitted by Codex.
+
+#### 7a. Build the order ticket list
+
+Convert the proposed orders from the memo into an explicit order ticket list:
+
+```json
+{
+  "run_id": "YYYY-MM-DD/<short-hash-of-workspace-and-proposals>",
+  "account_mode": "paper|live",
+  "orders": [
+    {
+      "strategy": "dip-buying",
+      "symbol": "VTI",
+      "side": "buy",
+      "notional": 50,
+      "type": "market",
+      "time_in_force": "day",
+      "reason": "VTI is -5.0% from 50d high"
+    }
+  ]
+}
+```
+
+Rules:
+- Only include orders already shown in the memo.
+- Do not add instruments outside the relevant strategy file.
+- For fractional equity BUYs, prefer notional market orders when Alpaca supports them.
+- For SELLs, use quantity only after confirming the held quantity; never sell more than the account holds.
+- SGOV funding sells must appear before dependent target buys.
+
+#### 7b. Preflight before asking for confirmation
+
+Before requesting confirmation:
+
+- Check the Alpaca market clock and calendar.
+- Confirm paper/live account mode matches the strategy/account setup and `ALPACA_PAPER_TRADE`.
+- Confirm available cash / buying power / SGOV reserve is sufficient.
+- Confirm quotes are fresh enough for the strategy.
+- Check open orders so you do not duplicate same-symbol/same-strategy orders.
+- Check today's journal for an `Order execution` section with the same `run_id`. If it already executed, stop unless the user explicitly asks for a new run and acknowledges the prior execution.
+
+If any preflight fails, do not place orders. Append the failure to the memo's `Order execution` section and tell the user what needs attention.
+
+#### 7c. Exact confirmation
+
+Show the full order batch in chat, including account mode, live/paper warning, symbols, sides, notional/quantity, order type, time-in-force, and rationale. Then ask the user to type this exact confirmation phrase:
+
+```text
+EXECUTE <N> ORDERS
+```
+
+Where `<N>` is the exact number of orders in the batch.
+
+If the user types anything else, stop. Do not place orders. Leave the memo as proposal-only / not executed.
+
+#### 7d. Submit orders
+
+Only after exact confirmation:
+
+- Submit the displayed orders using Alpaca order-placement tools.
+- Submit SGOV funding sell legs before dependent buys.
+- If any funding sell fails, stop dependent buys.
+- If any target order fails, stop any orders that depend on that state and report the error.
+- Never submit extended-hours orders unless a strategy explicitly permits them.
+- Never submit options or crypto orders unless the strategy explicitly permits them and the user confirmed those exact orders.
+
+#### 7e. Record execution
+
+Append execution results to the same `<workspace>/journal/<YYYY-MM-DD>.md` memo:
+
+```markdown
+## Order execution
+- Run ID: <run_id>
+- Confirmation: EXECUTE <N> ORDERS
+
+| Strategy | Symbol | Side | Notional / Qty | Alpaca order ID | Status | Notes |
+|---|---:|---:|---:|---|---|---|
+| ... | ... | ... | ... | ... | ... | ... |
+```
+
+Then surface the submitted order IDs and any failures in chat.
+
 ## Hard rules
 
-- **Never execute trades.** Read-only Alpaca calls only. If you're tempted to call an order endpoint, you've misread the brief.
+- **Default is proposal-only.** In proposal-only mode, never call order-placement endpoints.
+- **Trading mode is confirmation-gated.** In `trading-with-confirmation`, order placement is allowed only inside step 7 after the memo is written, preflight passes, the exact batch is displayed, and the user types the exact confirmation phrase.
+- **Only submit displayed orders.** Never submit an order that was not included in the order ticket list shown to the user.
 - **Don't fabricate.** If MCP is unreachable, web search fails, or quotes are stale, say so explicitly. A short honest memo beats a confident wrong one.
 - **Don't silently reconcile.** If a strategy's running `deployed_in_cycle` and Alpaca's actual buy history disagree, flag it in the memo and ask the user.
 - **Don't drift from any strategy file.** Each `strategies/<name>.md` is the user's rulebook. Propose changes in the memo's "Strategy notes"; never override.
@@ -173,4 +277,4 @@ Print, inline in chat (not the full memo dump):
 - **Auto-edit exception — "Live research notes" only.** A strategy with `auto_research: daily` may have dated entries **appended** (never modified) to its "Live research notes" section per step 4.5. No other section is auto-editable.
 - **No new instruments outside what each strategy's universe permits.**
 - **Strategies are sandboxed by capital.** Respect each strategy's `capital_monthly_usd`. If multiple strategies want to fire on the same day, they each get their declared budget, not the total Alpaca cash.
-- **Respect each strategy's buy/sell scope.** Some strategies are buy-only — never propose a sell of an equity position for them. SGOV-side cash-management trades (sell SGOV → free cash → buy target) are NOT strategy sales; those are always allowed.
+- **Respect each strategy's buy/sell scope.** Some strategies are buy-only — never propose or submit a sell of an equity position for them. SGOV-side cash-management trades (sell SGOV → free cash → buy target) are NOT strategy sales; those are allowed only when shown and confirmed.

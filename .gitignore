@@ -19,6 +19,8 @@
 node_modules/
 __pycache__/
 *.pyc
+.investment-assistant-workspace.json
+*.tmp
 
 # Optional — uncomment if you want your journal entries to stay LOCAL only
 # (the journal contains your portfolio snapshots, trade history, research notes;

@@ -1,7 +1,3 @@
----
-description: Interactive strategy builder — ask questions, generate a new strategy file in ./strategies/.
-allowed-tools: Read, Write, Glob
----
 
 # Interactive strategy builder
 
@@ -9,14 +5,21 @@ You are helping the user create a new investment strategy file. Walk them throug
 
 ## Procedure
 
+### 0. Bootstrap workspace
+
+- Run `scripts/workspace-bootstrap.py --json` from the plugin repo root.
+- Treat the returned `workspace_path` as `<workspace>`.
+- Read and write strategy files in `<workspace>/strategies/`, not in the installed plugin directory.
+- Tell the user which workspace path will receive the new strategy.
+
 ### 1. Greet and orient
 
-> "Let's build a new strategy. I'll ask you a few questions, then generate a strategy file in `./strategies/`. I won't run it for you — once it's written, you decide when to set `status: active` and run `/investment:daily`.
+> "Let's build a new strategy. I'll ask you a few questions, then generate a strategy file in `<workspace>/strategies/`. I won't run it for you — once it's written, you decide when to set `status: active` and run `/investment:daily`.
 >
 > First question: **what do you want to call this strategy?** Use lowercase, hyphens for spaces, no extension. Example: `my-tech-basket` or `bond-ladder`. This becomes the filename `strategies/<name>.md` and the `name:` in frontmatter."
 
 **Validate the name:**
-- Must be unique (not already a file in `./strategies/`)
+- Must be unique (not already a file in `<workspace>/strategies/`)
 - Lowercase, alphanumeric + hyphens only
 - No `.example` suffix
 - If they pick a taken name, ask for a different one
@@ -83,7 +86,7 @@ After the type-specific questions:
 
 ### 5. Draft the file
 
-Generate the strategy file content based on their answers. Use the structure of the matching `.example.md` file in `./strategies/` as a template — copy the section structure, fill in user-specific values, write a one-paragraph "Profile" describing the strategy in plain terms.
+Generate the strategy file content based on their answers. Use the structure of the matching `.example.md` file in `<workspace>/strategies/` as a template — copy the section structure, fill in user-specific values, write a one-paragraph "Profile" describing the strategy in plain terms.
 
 **Default frontmatter:**
 ```yaml
@@ -127,16 +130,16 @@ If they say "looks good," write the file. If they ask for changes, iterate. If t
 ### 7. Write and confirm
 
 After they approve:
-1. Write to `./strategies/<name>.md`.
+1. Write to `<workspace>/strategies/<name>.md`.
 2. Confirm:
 
-   > "✅ Strategy `<name>` written to `strategies/<name>.md`. It's `status: paused` — open the file and change to `status: active` when you're ready to run it via `/investment:daily`. Edit any rules in the file freely; the daily run will respect what's there."
+   > "✅ Strategy `<name>` written to `<workspace>/strategies/<name>.md`. It's `status: paused` — open the file and change to `status: active` when you're ready to run it via `/investment:daily`. Edit any rules in the file freely; the daily run will respect what's there."
 
 ## Hard rules
 
 - **Always start `status: paused`.** Never auto-activate.
 - **Validate filename:** lowercase, hyphens, no `.example` suffix, must be unique.
 - **Never write to an existing file** — refuse and ask for a different name.
-- **Always include a clear disclaimer** in the generated file (in the Profile or at the bottom): "This strategy is a tool for tracking the user's own decisions. The `/investment:daily` command proposes orders; the user executes manually."
+- **Always include a clear disclaimer** in the generated file (in the Profile or at the bottom): "This strategy is a tool for tracking the user's own decisions. The `/investment:daily` command proposes orders by default; if trading-with-confirmation is enabled, Codex may submit only the exact order batch the user confirms."
 - **Never propose violating the strategy's own rules.** If the user describes an active-trading strategy without exit rules, push back and require them.
 - **Show the user the draft before writing.** No surprise files.

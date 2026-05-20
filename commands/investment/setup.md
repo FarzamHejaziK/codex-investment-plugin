@@ -1,15 +1,21 @@
----
-description: First-time setup wizard — wires up the Alpaca MCP, stores keys in the OS keyring, verifies the connection, and walks through configuring a monthly budget for each example strategy.
-allowed-tools: Bash, Read, Write, Edit, Glob, WebFetch
----
 
 # First-time setup
 
 You are walking a non-programmer through setting up this workspace. Be patient, ask one thing at a time, confirm progress before moving on, and explain *why* at each step.
 
-The goal of this wizard: get the user from "fresh clone" to "able to run `/investment:daily` successfully."
+The goal of this wizard: get the user from "fresh plugin install" to "able to run `/investment:daily` successfully."
 
 ## Procedure
+
+### 0. Bootstrap workspace
+
+Before asking setup questions:
+
+1. Run `scripts/workspace-bootstrap.py --json` from the plugin repo root.
+2. Treat the returned `workspace_path` as `<workspace>`.
+3. Tell the user: "I will store your strategy files and journal memos in `<workspace>`."
+4. If the script seeded example strategy files, mention that the examples were copied into `<workspace>/strategies/`.
+5. Never store API keys in this workspace.
 
 ### 1. Confirm the basics
 
@@ -23,11 +29,38 @@ Ask the user, one at a time:
 Whichever they pick, the only differences in the rest of the wizard are: (a) the Alpaca dashboard URL where keys are generated, and (b) the `ALPACA_PAPER_TRADE` env var value (`true` for paper, `false` for live). Otherwise the flow is identical.
 
 **If they pick live**, briefly confirm they understand:
-- Proposed orders, when executed by the user in Alpaca, move real money.
-- This is propose-only — Claude never auto-trades — but the user still clicks "buy" and lives with the outcome.
-- They can later switch modes by generating new keys in the other Alpaca panel, updating Keychain, and re-running `claude mcp add` with the opposite `ALPACA_PAPER_TRADE` value.
+- Proposed orders or confirmed trade executions in Alpaca move real money.
+- Proposal-only mode means Codex writes memos and the user clicks "buy" themselves.
+- Trading-with-confirmation mode means Codex may place the exact displayed order batch only after the user types the exact confirmation phrase.
+- They can later switch modes by generating new keys in the other Alpaca panel, updating Keychain, and re-running `codex mcp add` with the opposite `ALPACA_PAPER_TRADE` value.
 
 Once confirmed, store their choice as `<mode>` (`paper` or `live`) and use it consistently in the steps below.
+
+### 1.5. Choose execution mode
+
+Ask which execution mode they want:
+
+```
+Choose execution mode:
+  1. Proposal-only (recommended) — /investment:daily writes memos and proposed orders; you place orders manually in Alpaca.
+  2. Trading with confirmation — /investment:daily writes the memo, shows the exact order batch, and may place those orders only after you type the exact EXECUTE confirmation phrase.
+```
+
+Default to **proposal-only** if they are unsure.
+
+If they choose trading with confirmation, confirm they understand:
+- In paper mode, orders affect the simulated Alpaca paper account.
+- In live mode, orders affect the real Alpaca account.
+- Codex never places orders from `/investment:setup`, `/investment:help`, or `/investment:new-strategy`.
+- `/investment:daily` still requires exact per-run confirmation before placing any order.
+
+After they choose, persist the mode:
+
+```bash
+python3 scripts/workspace-bootstrap.py --execution-mode <proposal-only|trading-with-confirmation>
+```
+
+Then continue setup.
 
 ### 2. Generate Alpaca API keys
 
@@ -54,9 +87,9 @@ read -s "s?Paste ALPACA_SECRET_KEY: " && echo && \
   security add-generic-password -a "$USER" -s alpaca-secret-key -w "$s" -U && unset s
 ```
 
-Tell the user to run each in their **own terminal** (not via Claude Code). The `-s` flag means typing is hidden; the `-U` flag means "update if exists."
+Tell the user to run each in their **own terminal** (not via Codex). The `-s` flag means typing is hidden; the `-U` flag means "update if exists."
 
-After both are stored, verify (this is safe to run via Claude — it doesn't echo full values):
+After both are stored, verify (this is safe to run via Codex — it doesn't echo full values):
 
 ```bash
 echo "alpaca-api-key prefix: $(security find-generic-password -a "$USER" -s alpaca-api-key -w | cut -c1-2)"
@@ -68,7 +101,7 @@ Expected: prefix `PK` (paper) or `AK` (live), secret length ~44 chars.
 For **Linux / Windows** users — the Keychain commands won't work. Use one of these instead:
 - **Linux:** `secret-tool` (libsecret) or `pass` (gpg-based password store)
 - **Windows:** Credential Manager via PowerShell `New-StoredCredential`
-- **Cross-platform fallback:** put the values in `.env` (gitignored — never commit this) and source it before `claude mcp add`
+- **Cross-platform fallback:** put the values in `.env` (gitignored — never commit this) and source it before `codex mcp add`
 
 Adjust the wizard's next step accordingly.
 
@@ -97,13 +130,23 @@ uv python install 3.12
 For **macOS** users:
 
 ```bash
-claude mcp add alpaca \
+codex mcp add alpaca \
   --scope user \
   --transport stdio \
   --env ALPACA_API_KEY="$(security find-generic-password -a "$USER" -s alpaca-api-key -w)" \
   --env ALPACA_SECRET_KEY="$(security find-generic-password -a "$USER" -s alpaca-secret-key -w)" \
   --env ALPACA_PAPER_TRADE=true \
   -- uvx --python 3.12 alpaca-mcp-server
+```
+
+Alternative using this plugin's wrapper:
+
+```bash
+codex mcp add alpaca \
+  --scope user \
+  --transport stdio \
+  --env ALPACA_PAPER_TRADE=true \
+  -- /absolute/path/to/codex-investment-plugin/scripts/alpaca-mcp-wrapper.sh
 ```
 
 **Important** — the `ALPACA_PAPER_TRADE` env var must match the key type:
@@ -115,16 +158,16 @@ If it doesn't match, the MCP will 401 on every account-level call.
 ### 6. Verify
 
 ```bash
-claude mcp list
+codex mcp list
 ```
 
 Expected: `alpaca: ... ✓ Connected`. If it shows ✗ Failed, run the diagnostic in `docs/alpaca-setup.md`.
 
-Then **restart Claude Code** (close and re-open) so this session picks up the new MCP. After restart, in any project, `/mcp` should show alpaca connected.
+Then **restart Codex** (close and re-open) so this session picks up the new MCP. After restart, in any project, `/mcp` should show alpaca connected.
 
 ### 7. Test by calling Alpaca
 
-Once Claude Code is restarted and the MCP is loaded, call `mcp__alpaca__get_account_info` (read-only) and show the user:
+Once Codex is restarted and the MCP is loaded, call `mcp__alpaca__get_account_info` (read-only) and show the user:
 - Their account number (last 4 digits only)
 - Their equity / buying power
 - Their cash balance
@@ -133,7 +176,7 @@ This confirms the keys work and the connection is live.
 
 ### 8. Configure your strategies — per-strategy monthly budget
 
-Now walk the user through each `.example.md` file in `./strategies/`. Process them in this order: **dip-buying → ai-value-chain → active-trading** (lowest-risk to highest-risk, which matches the introduction order). For each one:
+Now walk the user through each `.example.md` file in `<workspace>/strategies/`. Process them in this order: **dip-buying → ai-value-chain → active-trading** (lowest-risk to highest-risk, which matches the introduction order). For each one:
 
 #### 8a. Summarize the strategy
 
@@ -179,7 +222,7 @@ Activate now (status: active) or keep paused (status: paused)?
 
 For each strategy the user chose to use (option 1 or 2):
 
-1. Copy `./strategies/<name>.example.md` to `./strategies/<name>.md`. **Leave the `.example.md` file untouched** — it stays as a reference template in the repo.
+1. Copy `<workspace>/strategies/<name>.example.md` to `<workspace>/strategies/<name>.md`. **Leave the `.example.md` file untouched** — it stays as a reference template in the workspace.
 2. In the new `<name>.md`, edit the YAML frontmatter:
    - Set `capital_monthly_usd:` to the user's chosen value
    - Set `last_updated:` to today's date
@@ -209,6 +252,10 @@ Tell the user:
 
 > ✅ **Setup complete.** Your Alpaca MCP is connected and verified.
 >
+> **Workspace:** `<workspace>`
+>
+> **Execution mode:** `<proposal-only|trading-with-confirmation>`
+>
 > **Your strategies:** [summary from step 8e]
 >
 > **Next steps:**
@@ -223,7 +270,8 @@ Tell the user:
 
 - **Never put API keys into any file in this workspace** — not in `.env`, not in strategy files, not in journal entries. Keychain (or your OS equivalent) is the only sanctioned storage.
 - **Never execute trades during setup.** This wizard is read-only on Alpaca; the only `mcp__alpaca__*` call to make is `get_account_info` for verification.
+- **Never enable trading-with-confirmation silently.** The user must explicitly choose it during setup or by editing config later.
 - **If the user pastes a key into the chat by accident**, tell them to:
   1. Regenerate the key in the Alpaca dashboard (invalidates the leaked one).
   2. Re-run the Keychain storage step with the new key.
-  3. Re-run `claude mcp add` with the refreshed values.
+  3. Re-run `codex mcp add` with the refreshed values.

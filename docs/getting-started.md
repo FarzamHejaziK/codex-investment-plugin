@@ -1,124 +1,123 @@
 # Getting started
 
-A 15-minute walkthrough from "I just cloned this repo" to "I just ran my first daily checkpoint." Aimed at people with little or no programming background.
+A practical walkthrough from "I installed the plugin" to "I ran my first daily checkpoint."
 
 ## What this is
 
-This is a **template repository** for managing investment strategies using Claude Code. You clone it to your machine, fill in your strategies, and run a daily command that:
+This is a Codex plugin for managing personal investment strategies. It creates or reuses a persistent workspace on your machine, stores strategy files there, connects to Alpaca through MCP, and runs a daily checkpoint.
 
-1. Reads your strategy files
-2. Pulls your live portfolio from Alpaca
-3. Tells you what to buy or sell **today**, based on the rules you wrote
-4. Writes a dated memo to `journal/` so you have a record
+Each daily run:
 
-It does **not** place trades for you. It tells you what to do; you click the buy button in Alpaca yourself. (See `safety-and-limits.md` for why.)
+1. Reads your strategy files from `<workspace>/strategies/`
+2. Pulls your Alpaca portfolio and market data
+3. Calculates what your rules propose today
+4. Writes a dated memo to `<workspace>/journal/`
+5. Optionally submits confirmed orders if trading-with-confirmation mode is enabled
+
+Proposal-only is the default. In proposal-only mode, Codex never places orders; you place them manually in Alpaca.
 
 ## What you need
 
-| Thing | Why | Cost |
-|---|---|---|
-| **A computer** | macOS, Linux, or Windows | — |
-| **An Alpaca brokerage account** | This is where your money lives and where trades happen | Free to open; paper trading is free |
-| **Claude Code installed** | The tool that runs the slash commands | Free; install from https://claude.com/claude-code |
-| **About 30 minutes** | One-time setup | — |
-| **~$0** to start (paper) or whatever you deposit (live) | `/investment:setup` asks paper or live up front — both supported | — |
-
-That's it. No programming knowledge required.
+| Thing | Why |
+|---|---|
+| Codex with this plugin installed | Runs the slash commands |
+| Alpaca account | Provides paper or live brokerage account and market data |
+| `uv` / `uvx` | Runs the Alpaca MCP server |
+| About 30 minutes | One-time setup |
 
 ## The 5 steps
 
-### 1. Clone this template
+### 1. Open the plugin in Codex
 
-On the GitHub page for this repo, click the green **"Use this template"** button → "Create a new repository." Pick a name (e.g., `my-investments`), make it **private** if you want your data hidden, and click create.
-
-Then on your computer, in Terminal:
+Clone or install the plugin repo:
 
 ```bash
-git clone https://github.com/<your-github-username>/my-investments.git
-cd my-investments
+git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
+cd codex-investment-plugin
 ```
 
-(Replace `<your-github-username>` with your actual GitHub username, and `my-investments` with whatever you named your repo.)
+Open this folder in Codex.
 
-(If you've never used Terminal: it's an app on your computer. On macOS it's called Terminal; on Windows it's PowerShell or "Command Prompt." Open it, then copy/paste the lines above one at a time and press Enter.)
+### 2. Run `/investment:setup`
 
-### 2. Open the workspace in Claude Code
+The setup wizard first runs `scripts/workspace-bootstrap.py`, which creates or locates your workspace. By default that workspace is:
 
-Launch Claude Code. Use **File → Open** (or whatever your version calls it) to open the folder you just cloned. Once open, Claude Code automatically detects the `.claude/commands/` directory and makes the slash commands available: `/investment:setup`, `/investment:daily`, `/investment:new-strategy`.
+```text
+~/Documents/codex-investment-plugin-workspace
+```
 
-### 3. Run `/investment:setup`
+You can override it:
 
-In the Claude Code chat, type `/investment:setup` and press Enter. The wizard walks you through:
-- Generating Alpaca API keys (in your Alpaca dashboard)
-- Storing them securely (in macOS Keychain, on Mac — other options for Linux/Windows)
-- Installing `uv` (a tool that runs the Alpaca connector)
-- Wiring everything up
-- Verifying the connection by reading your Alpaca account (read-only — no trades placed)
+```bash
+export CODEX_INVESTMENT_WORKSPACE=/path/to/my-investment-workspace
+```
 
-When it prints "✅ Setup complete," you're ready.
+Then the wizard walks through Alpaca account mode, execution mode, API keys, MCP setup, and strategy configuration.
 
-### 4. Activate a strategy
+### 3. Choose execution mode
 
-In `./strategies/` there are three example strategies:
-- `dip-buying.example.md` — buys broad ETFs (VTI / QQQ) when they dip
-- `ai-value-chain.example.md` — monthly equal-weight DCA on 8 AI infrastructure picks
-- `active-trading.example.md` — buy-and-sell on mean-reversion signals (riskier)
+Setup asks:
 
-**All three ship `status: paused`** — they don't do anything until you activate one. To activate:
+- **Proposal-only (recommended):** `/investment:daily` writes memos and proposed orders. You place orders manually.
+- **Trading with confirmation:** `/investment:daily` writes the memo, shows the exact order batch, and may submit that batch only after you type the exact confirmation phrase.
 
-1. Pick the one whose style matches you (most beginners pick dip-buying; it's the simplest)
-2. Open the file
-3. Change the filename: remove `.example` → `dip-buying.md` (or rename via Finder/your file manager)
-4. Edit the frontmatter at the top: change `status: paused` to `status: active`
-5. Change `capital_monthly_usd: 500` to whatever you actually plan to deposit each month
-6. Save the file
+Live trading plus trading-with-confirmation can move real money.
 
-That's it. The strategy is now live.
+### 4. Configure and activate a strategy
 
-Or, if you want a custom strategy, run `/investment:new-strategy` — it'll ask you questions and generate a file for you.
+The workspace starts with three paused examples:
+
+- `dip-buying.example.md`
+- `ai-value-chain.example.md`
+- `active-trading.example.md`
+
+Setup can copy an example to `<name>.md`, set your monthly budget, and leave it paused or activate it. You can also edit files yourself in `<workspace>/strategies/`.
+
+To activate manually:
+
+1. Open `<workspace>/strategies/<name>.md`.
+2. Set `status: active`.
+3. Confirm `capital_monthly_usd`.
+4. Save.
 
 ### 5. Run `/investment:daily`
 
-Type `/investment:daily` in Claude Code chat. The command:
-- Reads your strategy
-- Pulls your Alpaca portfolio
-- Calculates whether any rules fire today
-- Writes a memo to `journal/<today's date>.md`
-- Shows you a summary in chat
+The command:
 
-If a rule fires (e.g., "VTI dipped 3% from its 50-day high"), the memo will propose specific orders like "BUY $24 VTI." You then open the Alpaca app, place that exact order, and reply back to confirm. Tomorrow's run reconciles what you actually placed.
+- Reads active strategies
+- Pulls Alpaca data
+- Writes `<workspace>/journal/<YYYY-MM-DD>.md`
+- Shows the key tables and proposed orders in chat
 
-If nothing fires (markets are calm or rising), the memo will say "No new orders today." That's normal. The strategies are designed to be patient.
+If proposal-only, no orders are submitted by Codex. If trading-with-confirmation is enabled, Codex still stops and asks for the exact phrase:
 
-## What to do next
+```text
+EXECUTE <N> ORDERS
+```
 
-- **Keep running `/investment:daily`** each market morning (Monday–Friday, ~9:30 AM ET or any time after).
-- **Read the daily memo** in `journal/`. Over time these become your trading diary.
-- **Don't change the strategy file every day.** Let rules play out for at least a month before tuning.
-- **Review your strategy quarterly** (every 3 months) and decide if rules need adjustment. The `Open questions` section in each strategy file is where you list things to revisit.
+Anything else means no orders are placed.
 
 ## Common first-week questions
 
-**Q: I ran `/investment:daily` and it said "Alpaca MCP isn't connected." What now?**
-A: The setup didn't finish or Claude Code needs a restart. Quit Claude Code, re-open, and try `/investment:daily` again. If still broken, re-run `/investment:setup`.
+**Q: Where is my workspace?**
+A: Run `python3 scripts/workspace-bootstrap.py --json` from the plugin repo, or inspect `~/.codex-investment-plugin/config.json`.
 
-**Q: Does this work with brokers other than Alpaca?**
-A: Not out of the box. Alpaca is what the MCP connector talks to. You could adapt the strategy logic to other brokers manually (read the memo, place the same trade in Fidelity/Schwab/etc.) but the auto-portfolio-pull won't work.
+**Q: I ran `/investment:daily` and Alpaca MCP is not connected. What now?**
+A: Finish or rerun `/investment:setup`, then restart Codex so the MCP server is loaded.
 
-**Q: Paper vs. live — which should I pick?**
-A: Both are fully supported. **Paper** uses fake money in a simulated Alpaca account — zero financial risk, great for learning the tool's behavior. **Live** uses real money — real returns, real losses. The `/investment:setup` wizard asks you up front and proceeds accordingly. You can switch later by re-generating keys in Alpaca's other panel and re-running `claude mcp add` with the opposite `ALPACA_PAPER_TRADE` value (see `alpaca-setup.md`).
+**Q: Paper vs. live: which should I pick?**
+A: Both are supported. Paper uses simulated money. Live uses real money. If you are learning the flow, paper plus proposal-only is the lowest-risk path.
 
-**Q: Can the AI place trades for me automatically?**
-A: **No.** This is a deliberate design choice — see `safety-and-limits.md`. The tool proposes; you execute. This prevents both accidental large trades and unauthorized money movement.
+**Q: Can Codex place trades for me?**
+A: Only if you choose trading-with-confirmation and confirm the exact order batch during `/investment:daily`. Setup, help, and strategy-builder commands never place trades.
 
-**Q: What if I want to take a break and not run `/investment:daily` every day?**
-A: That's fine. The strategies are designed to be patient. If you skip a week, the next run reads the prior journal entries and figures out what you missed. No data is lost.
+**Q: What if I skip a few days?**
+A: The next daily run reads prior journal entries and reconciles against Alpaca. The strategies are designed to be patient.
 
-## Where to go from here
+## Where to go next
 
-- `docs/alpaca-setup.md` — Paper vs. live, key rotation, troubleshooting
-- `docs/designing-a-strategy.md` — How strategy files are structured, anatomy of each section
-- `docs/safety-and-limits.md` — What this tool will and won't do (read before going live)
-- `docs/faq.md` — Frequently asked questions
-
-When in doubt, ask Claude Code directly — it has the full context of this workspace and can answer specific questions about your strategy.
+- [Workspace bootstrap](workspace-bootstrap.md)
+- [Alpaca setup](alpaca-setup.md)
+- [Trading mode](trading-mode.md)
+- [Designing a strategy](designing-a-strategy.md)
+- [Safety and limits](safety-and-limits.md)

@@ -1,7 +1,3 @@
----
-description: Conversational help — explain how this workspace works, how to use the commands, and how to design or modify a strategy. Read-only; never writes files or trades.
-allowed-tools: Read, Glob, Grep
----
 
 # Conversational help
 
@@ -30,17 +26,18 @@ Wait for their answer. Then branch.
 
 Walk them through, one beat at a time. Pause for questions between beats — don't monologue.
 
-1. **The loop.** They write rules in `strategies/<name>.md`. Each market morning they run `/investment:daily`. It reads their portfolio (read-only), evaluates each active strategy's rules, writes a memo to `journal/<date>.md`, and tells them what to buy or sell. **They execute every trade themselves** in Alpaca — this workspace proposes, never trades.
-2. **The example strategies in `./strategies/`** (`dip-buying.example.md`, `ai-value-chain.example.md`, `active-trading.example.md`). All ship paused. Offer to list them or read one out loud.
+1. **The loop.** Their rules live in the persistent workspace under `strategies/<name>.md`. Each market morning they run `/investment:daily`. It reads their portfolio, evaluates each active strategy's rules, writes a memo to `journal/<date>.md`, and tells them what to buy or sell. In proposal-only mode they execute every trade themselves; in trading-with-confirmation mode Codex can submit only the exact order batch they confirm.
+2. **The example strategies in `<workspace>/strategies/`** (`dip-buying.example.md`, `ai-value-chain.example.md`, `active-trading.example.md`). All ship paused. Offer to list them or read one out loud.
 3. **The slash commands.** `/investment:setup` (one-time), `/investment:daily` (every market morning), `/investment:new-strategy` (when they want a new strategy), `/investment:help` (this one, anytime).
-4. **The safety layers.** `./.claude/settings.json` denies order-placement Alpaca tools at the permission layer. Every command's prompt also says "read-only." And every strategy file declares its own scope.
-5. Offer `docs/getting-started.md` for the longer walkthrough.
+4. **The safety layers.** Proposal-only is the default. Trading mode requires explicit setup plus exact per-run confirmation. Every strategy file declares its own scope, and `/investment:daily` must never submit an undisplayed order.
+5. **The workspace.** If they are unsure where files live, run `scripts/workspace-bootstrap.py --json` and show the `workspace_path`.
+6. Offer `docs/getting-started.md` for the longer walkthrough.
 
 ### 2. A specific command
 
 Ask which one. Then summarize that command in plain terms — what it does, what it doesn't do, what state it expects, what it produces. If they ask "should I run it right now?", give a concrete yes/no with reason (e.g., "`/investment:daily` only fires usefully if at least one `status: active` strategy exists — let's check `strategies/` first").
 
-**Read the relevant `.claude/commands/investment/<name>.md` file before answering.** Don't paraphrase from memory — the command file is the source of truth for what that command actually does.
+**Read the relevant `commands/investment/<name>.md` file before answering.** Don't paraphrase from memory — the command file is the source of truth for what that command actually does.
 
 ### 3. Designing a strategy
 
@@ -57,7 +54,7 @@ Useful reference to surface: `docs/designing-a-strategy.md`.
 
 ### 4. Modifying a strategy
 
-1. Ask which strategy. If they're unsure, list `strategies/*.md` (ignoring `*.example.md`).
+1. Ask which strategy. If they're unsure, run `scripts/workspace-bootstrap.py --json`, then list `<workspace>/strategies/*.md` (ignoring `*.example.md`).
 2. Read the file together. Summarize each section back to them in plain terms.
 3. Ask what they want to change and why. Common reasons: it's firing too often or too rarely; the universe feels stale; the budget is wrong; they want to capture an `Open question` to revisit later.
 4. **Talk through the change before they edit.** What's the trade-off? Does it interact with any other rule in the file?
@@ -68,10 +65,11 @@ Useful reference to surface: `docs/designing-a-strategy.md`.
 Ask what went wrong. Common cases:
 
 - **`/investment:daily` says "no active strategies."** Check `strategies/*.md` for `status: active` in frontmatter.
-- **Alpaca MCP isn't connected.** Tell them to run `claude mcp list`. If `alpaca` is missing or shows ✗, point them to `docs/alpaca-setup.md` and `/investment:setup`.
+- **Alpaca MCP isn't connected.** Tell them to run `codex mcp list`. If `alpaca` is missing or shows ✗, point them to `docs/alpaca-setup.md` and `/investment:setup`.
+- **They do not know where the workspace is.** Tell them to run `python3 scripts/workspace-bootstrap.py --json` from the plugin repo, or check `~/.codex-investment-plugin/config.json`.
 - **Numbers in the memo don't match Alpaca.** Could be timing (Alpaca data lag), could be a reconciliation gap between journal and actual fills. The daily run should flag this — if it didn't, that's a bug worth reporting.
 - **A strategy is firing constantly, or never.** Usually a calibration issue in the formula or the minimum bite floor. Walk through the math with them.
-- **A new slash command isn't showing up.** Slash commands in `.claude/commands/` are scanned at session start. Tell them to restart Claude Code.
+- **A new slash command isn't showing up.** Slash commands in `commands/` are scanned at session start. Tell them to restart Codex.
 
 If it's not on this list, read the relevant file (the strategy, the command, the doc) before guessing.
 
@@ -83,6 +81,6 @@ Just listen. Ask clarifying questions. Don't force their question into a categor
 
 - **Conversational, not procedural.** This command does not write files, place trades, or run the daily memo. If the user asks for an action, point them at the right command — don't try to do it inside `/investment:help`.
 - **Never edit a strategy file from inside this command.** Even if the user describes the edit in detail. They do the edit; you discuss it.
-- **Never execute or propose trades.** Even though this command can technically reach read-only Alpaca data via the MCP, its purpose is talking — not trading data. If the user wants live portfolio data, send them to `/investment:daily`.
+- **Never execute or propose trades.** Even though this command can technically reach Alpaca data via the MCP, its purpose is talking — not trading data. If the user wants live portfolio data or order proposals, send them to `/investment:daily`.
 - **Don't fabricate.** If a question hinges on what a command actually does, read the command file first. If it hinges on what a doc says, read the doc.
-- **Respect the safety posture.** If the user asks "can you just trade for me?", the answer is no, by design, and the reason is in `docs/safety-and-limits.md`.
+- **Respect the safety posture.** If the user asks "can you just trade for me?", explain that only `/investment:daily` in trading-with-confirmation mode can submit the exact confirmed batch, and point them to `docs/trading-mode.md`.
