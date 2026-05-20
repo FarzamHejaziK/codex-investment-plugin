@@ -2,7 +2,7 @@
 
 This doc covers opening an Alpaca account, generating API keys, storing them securely, wiring up the Codex MCP connection, and switching between paper and live.
 
-For first-time setup, run `/investment:setup` in Codex. Use this doc when something goes wrong or when you want to rotate keys.
+For first-time setup, run `/investment-setup` in Codex. Use this doc when something goes wrong or when you want to rotate keys.
 
 ## Paper vs. live
 
@@ -155,7 +155,7 @@ codex mcp list
 
 Expected: `alpaca` is connected. Restart Codex after adding or changing MCP configuration.
 
-During `/investment:setup`, Codex should call `mcp__alpaca__get_account_info` and show only safe account details such as last four account digits, equity, buying power, and cash.
+During `/investment-setup`, Codex should call `mcp__alpaca__get_account_info` and show only safe account details such as last four account digits, equity, buying power, and cash.
 
 ## Switch paper/live
 

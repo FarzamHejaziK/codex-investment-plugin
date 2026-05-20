@@ -25,7 +25,7 @@ Inside Codex:
 Open the **Codex Investment Plugin** marketplace, install **Codex Investment Assistant**, then start a new thread. Run:
 
 ```text
-/investment:setup
+/investment-setup
 ```
 
 ## Install From A Local Clone
@@ -55,10 +55,10 @@ The validation checks the Codex manifest, marketplace manifest, command files, s
 After the plugin is installed and enabled, the command files under `commands/` are exposed as investment commands:
 
 ```text
-/investment:setup
-/investment:daily
-/investment:new-strategy
-/investment:help
+/investment-setup
+/investment-daily
+/investment-new-strategy
+/investment-help
 ```
 
 The plugin can also be invoked conversationally. For example:

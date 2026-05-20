@@ -1,14 +1,10 @@
----
-description: Set up the investment workspace, Alpaca MCP, paper/live mode, execution mode, and example strategies.
----
-
-# /investment:setup
+# /investment-setup
 
 First-time setup.
 
 You are walking a non-programmer through setting up this workspace. Be patient, ask one thing at a time, confirm progress before moving on, and explain *why* at each step.
 
-The goal of this wizard: get the user from "fresh plugin install" to "able to run `/investment:daily` successfully."
+The goal of this wizard: get the user from "fresh plugin install" to "able to run `/investment-daily` successfully."
 
 ## Procedure
 
@@ -47,8 +43,8 @@ Ask which execution mode they want:
 
 ```
 Choose execution mode:
-  1. Proposal-only (recommended) — /investment:daily writes memos and proposed orders; you place orders manually in Alpaca.
-  2. Trading with confirmation — /investment:daily writes the memo, shows the exact order batch, and may place those orders only after you type the exact EXECUTE confirmation phrase.
+  1. Proposal-only (recommended) — /investment-daily writes memos and proposed orders; you place orders manually in Alpaca.
+  2. Trading with confirmation — /investment-daily writes the memo, shows the exact order batch, and may place those orders only after you type the exact EXECUTE confirmation phrase.
 ```
 
 Default to **proposal-only** if they are unsure.
@@ -56,8 +52,8 @@ Default to **proposal-only** if they are unsure.
 If they choose trading with confirmation, confirm they understand:
 - In paper mode, orders affect the simulated Alpaca paper account.
 - In live mode, orders affect the real Alpaca account.
-- Codex never places orders from `/investment:setup`, `/investment:help`, or `/investment:new-strategy`.
-- `/investment:daily` still requires exact per-run confirmation before placing any order.
+- Codex never places orders from `/investment-setup`, `/investment-help`, or `/investment-new-strategy`.
+- `/investment-daily` still requires exact per-run confirmation before placing any order.
 
 After they choose, persist the mode:
 
@@ -216,7 +212,7 @@ If the user picked option 1 or 2, ask:
 Activate now (status: active) or keep paused (status: paused)?
 
   - Paused (recommended) — strategy is configured but won't run until you flip the switch. Read the file once, understand the rules, then activate.
-  - Active — /investment:daily will start proposing orders for this strategy on the next run.
+  - Active — /investment-daily will start proposing orders for this strategy on the next run.
 ```
 
 **Default to paused.** Only activate if the user explicitly chooses active.
@@ -249,7 +245,7 @@ Strategies configured:
 Active: N | Paused: M | Skipped: K
 ```
 
-If at least one strategy is active, the user is ready to run `/investment:daily`. If everything is paused, the user needs to flip a status to `active` first (open the file, edit, save).
+If at least one strategy is active, the user is ready to run `/investment-daily`. If everything is paused, the user needs to flip a status to `active` first (open the file, edit, save).
 
 ### 9. Print "you're set up"
 
@@ -265,9 +261,9 @@ Tell the user:
 >
 > **Next steps:**
 > 1. If any strategies are `status: paused`, open them and change to `status: active` when ready.
-> 2. Run `/investment:daily` each market morning to get today's proposals.
-> 3. Run `/investment:new-strategy` anytime to build additional strategies.
-> 4. Run `/investment:help` if you have questions about anything.
+> 2. Run `/investment-daily` each market morning to get today's proposals.
+> 3. Run `/investment-new-strategy` anytime to build additional strategies.
+> 4. Run `/investment-help` if you have questions about anything.
 >
 > Read `docs/getting-started.md` for the full walkthrough and `docs/safety-and-limits.md` for what this tool will and won't do.
 

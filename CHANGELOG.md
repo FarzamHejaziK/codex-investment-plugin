@@ -6,7 +6,8 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 ### Added
 - Codex plugin manifest in `.codex-plugin/plugin.json`.
-- Codex command prompts in `commands/` with plugin namespace `investment`.
+- Codex command prompts in `commands/` with global `/investment-*` command names.
+- Codex skills in `skills/` for setup, daily checkpoint, new strategy creation, and help.
 - Persistent workspace bootstrap script and documentation.
 - Optional `trading-with-confirmation` mode for exact user-confirmed Alpaca order batches.
 - Validation script for plugin shape and stale Claude runtime references.
@@ -15,8 +16,8 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 ### Changed
 - Adapted the upstream Claude Investment Assistant template to Codex.
-- `/investment:setup` now bootstraps the workspace and asks for execution mode.
-- `/investment:daily` remains proposal-only by default, with confirmed execution available only in trading-with-confirmation mode.
+- `/investment-setup` now bootstraps the workspace and asks for execution mode.
+- `/investment-daily` remains proposal-only by default, with confirmed execution available only in trading-with-confirmation mode.
 
 ### Removed
 - Claude-specific `.claude/` command/config directory.
@@ -27,7 +28,7 @@ All notable changes to this plugin are documented here. The format follows [Keep
 Initial public template release.
 
 ### Added
-- Three project-level slash commands: `/investment:setup`, `/investment:daily`, `/investment:new-strategy`
+- Three project-level slash commands: `/investment-setup`, `/investment-daily`, `/investment-new-strategy`
 - Three example strategies, all shipped as `status: paused` for safety:
   - `dip-buying.example.md` — continuous-formula dip-buying on broad ETFs
   - `ai-value-chain.example.md` — DCA basket of AI infrastructure picks-and-shovels

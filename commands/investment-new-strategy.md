@@ -1,8 +1,4 @@
----
-description: Build a new paused investment strategy file in the persistent workspace through guided Q&A.
----
-
-# /investment:new-strategy
+# /investment-new-strategy
 
 Interactive strategy builder.
 
@@ -19,7 +15,7 @@ You are helping the user create a new investment strategy file. Walk them throug
 
 ### 1. Greet and orient
 
-> "Let's build a new strategy. I'll ask you a few questions, then generate a strategy file in `<workspace>/strategies/`. I won't run it for you — once it's written, you decide when to set `status: active` and run `/investment:daily`.
+> "Let's build a new strategy. I'll ask you a few questions, then generate a strategy file in `<workspace>/strategies/`. I won't run it for you — once it's written, you decide when to set `status: active` and run `/investment-daily`.
 >
 > First question: **what do you want to call this strategy?** Use lowercase, hyphens for spaces, no extension. Example: `my-tech-basket` or `bond-ladder`. This becomes the filename `strategies/<name>.md` and the `name:` in frontmatter."
 
@@ -85,7 +81,7 @@ If yes:
 
 After the type-specific questions:
 
-1. **`account:`** — `alpaca-paper` or `alpaca-live`? (Informational metadata about which Alpaca account this strategy is designed for; the actual paper/live mode is set by the `ALPACA_PAPER_TRADE` env var in your MCP config, chosen during `/investment:setup`.)
+1. **`account:`** — `alpaca-paper` or `alpaca-live`? (Informational metadata about which Alpaca account this strategy is designed for; the actual paper/live mode is set by the `ALPACA_PAPER_TRADE` env var in your MCP config, chosen during `/investment-setup`.)
 2. **`auto_research: daily`?** (already asked for DCA; ask for the other types here too)
 3. **Final sanity check:** show the user the proposed values they've given. Confirm.
 
@@ -138,13 +134,13 @@ After they approve:
 1. Write to `<workspace>/strategies/<name>.md`.
 2. Confirm:
 
-   > "✅ Strategy `<name>` written to `<workspace>/strategies/<name>.md`. It's `status: paused` — open the file and change to `status: active` when you're ready to run it via `/investment:daily`. Edit any rules in the file freely; the daily run will respect what's there."
+   > "✅ Strategy `<name>` written to `<workspace>/strategies/<name>.md`. It's `status: paused` — open the file and change to `status: active` when you're ready to run it via `/investment-daily`. Edit any rules in the file freely; the daily run will respect what's there."
 
 ## Hard rules
 
 - **Always start `status: paused`.** Never auto-activate.
 - **Validate filename:** lowercase, hyphens, no `.example` suffix, must be unique.
 - **Never write to an existing file** — refuse and ask for a different name.
-- **Always include a clear disclaimer** in the generated file (in the Profile or at the bottom): "This strategy is a tool for tracking the user's own decisions. The `/investment:daily` command proposes orders by default; if trading-with-confirmation is enabled, Codex may submit only the exact order batch the user confirms."
+- **Always include a clear disclaimer** in the generated file (in the Profile or at the bottom): "This strategy is a tool for tracking the user's own decisions. The `/investment-daily` command proposes orders by default; if trading-with-confirmation is enabled, Codex may submit only the exact order batch the user confirms."
 - **Never propose violating the strategy's own rules.** If the user describes an active-trading strategy without exit rules, push back and require them.
 - **Show the user the draft before writing.** No surprise files.

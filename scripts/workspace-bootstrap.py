@@ -129,7 +129,7 @@ def seed_workspace(workspace: Path) -> list[str]:
             "# Codex Investment Plugin Workspace\n\n"
             "This folder stores your personal investment strategy files and daily journal memos.\n\n"
             "- `strategies/` contains strategy examples and your active strategy files.\n"
-            "- `journal/` contains daily memos written by `/investment:daily`.\n"
+            "- `journal/` contains daily memos written by `/investment-daily`.\n"
             "- `.investment-assistant-workspace.json` records local plugin settings.\n\n"
             "Keep this folder private if your strategies, account metadata, or journal entries are sensitive.\n",
             encoding="utf-8",

@@ -4,7 +4,7 @@ This doc covers what the plugin will and will not do, why the defaults are conse
 
 ## What this tool is
 
-A Codex plugin for organizing investment strategies. `/investment:daily` reads strategy files, pulls Alpaca portfolio data, writes a daily memo, and proposes specific orders based on rules you wrote.
+A Codex plugin for organizing investment strategies. `/investment-daily` reads strategy files, pulls Alpaca portfolio data, writes a daily memo, and proposes specific orders based on rules you wrote.
 
 ## What this tool is not
 
@@ -20,7 +20,7 @@ A Codex plugin for organizing investment strategies. `/investment:daily` reads s
 This is the default and recommended mode.
 
 1. Strategy files declare rules.
-2. `/investment:daily` proposes orders and writes the memo.
+2. `/investment-daily` proposes orders and writes the memo.
 3. You place orders manually in Alpaca if you agree.
 
 Codex does not call Alpaca order-placement tools in this mode.
@@ -29,7 +29,7 @@ Codex does not call Alpaca order-placement tools in this mode.
 
 This is optional.
 
-1. `/investment:daily` runs the same analysis and writes the same memo.
+1. `/investment-daily` runs the same analysis and writes the same memo.
 2. Codex builds an exact order batch from the memo.
 3. Codex runs preflight checks.
 4. Codex shows the exact batch in chat.
@@ -72,7 +72,7 @@ Anything other than the exact confirmation phrase means no orders are placed.
 ## Hard safety rules
 
 - Setup, help, and strategy-builder commands never place trades.
-- `/investment:daily` is the only command that may place orders, and only in trading-with-confirmation mode.
+- `/investment-daily` is the only command that may place orders, and only in trading-with-confirmation mode.
 - Codex must write the memo before requesting execution confirmation.
 - Codex must show the exact order batch before requesting confirmation.
 - Codex must not submit instruments outside the strategy file's allowed universe.

@@ -29,9 +29,9 @@ The plugin is designed for user-authored rules, transparent journals, and explic
 
 ---
 
-You define your rules in markdown strategy files. Each market day you run `/investment:daily`. It reads your Alpaca portfolio, checks your rules, writes a dated journal memo, and tells you exactly what the rules propose today.
+You define your rules in markdown strategy files. Each market day you run `/investment-daily`. It reads your Alpaca portfolio, checks your rules, writes a dated journal memo, and tells you exactly what the rules propose today.
 
-By default, it is **proposal-only**: Codex writes the memo and you place orders yourself in Alpaca. If you explicitly choose **trading-with-confirmation** during setup, `/investment:daily` may submit only the exact order batch shown in chat after you type the exact confirmation phrase.
+By default, it is **proposal-only**: Codex writes the memo and you place orders yourself in Alpaca. If you explicitly choose **trading-with-confirmation** during setup, `/investment-daily` may submit only the exact order batch shown in chat after you type the exact confirmation phrase.
 
 > **This is not financial advice.** This is a tool for organizing and tracking your own investment decisions. Past performance does not guarantee future results. If you use live Alpaca credentials or trading-with-confirmation mode, real money can move. Read [Safety and limits](docs/safety-and-limits.md) and [Trading mode](docs/trading-mode.md) first.
 
@@ -42,10 +42,10 @@ By default, it is **proposal-only**: Codex writes the memo and you place orders 
 1. Creates or reuses a persistent workspace for your personal files.
 2. Seeds example strategy files into `<workspace>/strategies/`.
 3. Runs four Codex slash commands:
-   - `/investment:setup`
-   - `/investment:daily`
-   - `/investment:new-strategy`
-   - `/investment:help`
+   - `/investment-setup`
+   - `/investment-daily`
+   - `/investment-new-strategy`
+   - `/investment-help`
 4. Pulls Alpaca account state and market data through the Alpaca MCP.
 5. Writes daily memos to `<workspace>/journal/`.
 6. Optionally submits confirmed Alpaca orders when trading-with-confirmation mode is enabled.
@@ -77,7 +77,7 @@ By default, it is **proposal-only**: Codex writes the memo and you place orders 
 
 2. Open Codex, run `/plugins`, install **Codex Investment Assistant** from the **Codex Investment Plugin** marketplace, then start a new thread.
 
-3. Run `/investment:setup`. The wizard:
+3. Run `/investment-setup`. The wizard:
    - Creates or locates your persistent workspace.
    - Asks paper or live.
    - Asks proposal-only or trading-with-confirmation.
@@ -89,7 +89,7 @@ By default, it is **proposal-only**: Codex writes the memo and you place orders 
    - Set `status: active`.
    - Confirm `capital_monthly_usd` matches your intended budget.
 
-5. Run `/investment:daily`.
+5. Run `/investment-daily`.
 
 The workspace path is stored in `~/.codex-investment-plugin/config.json`. Override it anytime by setting `CODEX_INVESTMENT_WORKSPACE=/path/to/workspace` before running a command.
 
@@ -109,12 +109,12 @@ All ship `status: paused` for safety. Setup can copy and configure them, but the
 
 | Command | When to run | What it does |
 |---|---|---|
-| `/investment:setup` | Once, after install | Workspace bootstrap, Alpaca keys, MCP wiring, connection verification, strategy configuration |
-| `/investment:daily` | Every market morning | Reads strategies, pulls portfolio, proposes orders, writes journal entry, optionally submits confirmed orders |
-| `/investment:new-strategy` | Whenever you want a new strategy | Interactive Q&A; writes a paused strategy file in the workspace |
-| `/investment:help` | Anytime you're unsure | Conversational guide for orientation, strategy design, and troubleshooting |
+| `/investment-setup` | Once, after install | Workspace bootstrap, Alpaca keys, MCP wiring, connection verification, strategy configuration |
+| `/investment-daily` | Every market morning | Reads strategies, pulls portfolio, proposes orders, writes journal entry, optionally submits confirmed orders |
+| `/investment-new-strategy` | Whenever you want a new strategy | Interactive Q&A; writes a paused strategy file in the workspace |
+| `/investment-help` | Anytime you're unsure | Conversational guide for orientation, strategy design, and troubleshooting |
 
-Commands live in [`commands/`](commands/). They are markdown prompts, so you can inspect or adapt them. The plugin manifest name is `investment`, so the intended Codex command namespace is `/investment:*`.
+Commands live in [`commands/`](commands/). They are markdown prompts, so you can inspect or adapt them. The command names are prefixed with `investment-` because Codex plugin commands are discovered as global slash commands.
 
 ## File Layout
 
@@ -126,10 +126,15 @@ codex-investment-plugin/
 ├── .codex-plugin/
 │   └── plugin.json
 ├── commands/
-│   ├── setup.md
-│   ├── daily.md
-│   ├── new-strategy.md
-│   └── help.md
+│   ├── investment-setup.md
+│   ├── investment-daily.md
+│   ├── investment-new-strategy.md
+│   └── investment-help.md
+├── skills/
+│   ├── investment-setup/
+│   ├── investment-daily/
+│   ├── investment-new-strategy/
+│   └── investment-help/
 ├── scripts/
 │   ├── workspace-bootstrap.py
 │   ├── alpaca-mcp-wrapper.sh
@@ -161,7 +166,7 @@ User data lives in the resolved workspace, not in the installed plugin directory
 Three layers:
 
 1. **Strategy layer.** Strategy files define allowed instruments, budget, sizing, and buy/sell scope.
-2. **Prompt layer.** `/investment:daily` must write the memo before any execution and cannot submit undisplayed orders.
+2. **Prompt layer.** `/investment-daily` must write the memo before any execution and cannot submit undisplayed orders.
 3. **Confirmation layer.** In trading-with-confirmation mode, the user must type `EXECUTE <N> ORDERS` for the exact displayed batch. Anything else stops execution.
 
 Proposal-only remains the default and safest mode.

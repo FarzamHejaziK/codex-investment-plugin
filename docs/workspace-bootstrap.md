@@ -80,7 +80,7 @@ Set trading-with-confirmation:
 python3 scripts/workspace-bootstrap.py --execution-mode trading-with-confirmation
 ```
 
-The mode affects `/investment:daily`; setup, help, and strategy-builder commands never place trades.
+The mode affects `/investment-daily`; setup, help, and strategy-builder commands never place trades.
 
 ## Privacy
 

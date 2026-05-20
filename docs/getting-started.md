@@ -47,7 +47,7 @@ codex plugin marketplace add .
 
 Cloning alone does not install the plugin. Codex loads installable plugins through marketplace metadata.
 
-### 2. Run `/investment:setup`
+### 2. Run `/investment-setup`
 
 The setup wizard first runs `scripts/workspace-bootstrap.py`, which creates or locates your workspace. By default that workspace is:
 
@@ -67,8 +67,8 @@ Then the wizard walks through Alpaca account mode, execution mode, API keys, MCP
 
 Setup asks:
 
-- **Proposal-only (recommended):** `/investment:daily` writes memos and proposed orders. You place orders manually.
-- **Trading with confirmation:** `/investment:daily` writes the memo, shows the exact order batch, and may submit that batch only after you type the exact confirmation phrase.
+- **Proposal-only (recommended):** `/investment-daily` writes memos and proposed orders. You place orders manually.
+- **Trading with confirmation:** `/investment-daily` writes the memo, shows the exact order batch, and may submit that batch only after you type the exact confirmation phrase.
 
 Live trading plus trading-with-confirmation can move real money.
 
@@ -89,7 +89,7 @@ To activate manually:
 3. Confirm `capital_monthly_usd`.
 4. Save.
 
-### 5. Run `/investment:daily`
+### 5. Run `/investment-daily`
 
 The command:
 
@@ -111,14 +111,14 @@ Anything else means no orders are placed.
 **Q: Where is my workspace?**
 A: Run `python3 scripts/workspace-bootstrap.py --json` from the plugin repo, or inspect `~/.codex-investment-plugin/config.json`.
 
-**Q: I ran `/investment:daily` and Alpaca MCP is not connected. What now?**
-A: Finish or rerun `/investment:setup`, then restart Codex so the MCP server is loaded.
+**Q: I ran `/investment-daily` and Alpaca MCP is not connected. What now?**
+A: Finish or rerun `/investment-setup`, then restart Codex so the MCP server is loaded.
 
 **Q: Paper vs. live: which should I pick?**
 A: Both are supported. Paper uses simulated money. Live uses real money. If you are learning the flow, paper plus proposal-only is the lowest-risk path.
 
 **Q: Can Codex place trades for me?**
-A: Only if you choose trading-with-confirmation and confirm the exact order batch during `/investment:daily`. Setup, help, and strategy-builder commands never place trades.
+A: Only if you choose trading-with-confirmation and confirm the exact order batch during `/investment-daily`. Setup, help, and strategy-builder commands never place trades.
 
 **Q: What if I skip a few days?**
 A: The next daily run reads prior journal entries and reconciles against Alpaca. The strategies are designed to be patient.

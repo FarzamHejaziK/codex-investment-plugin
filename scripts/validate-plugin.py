@@ -14,10 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     ".agents/plugins/marketplace.json",
     ".codex-plugin/plugin.json",
-    "commands/setup.md",
-    "commands/daily.md",
-    "commands/new-strategy.md",
-    "commands/help.md",
+    "commands/investment-setup.md",
+    "commands/investment-daily.md",
+    "commands/investment-new-strategy.md",
+    "commands/investment-help.md",
+    "skills/investment-setup/SKILL.md",
+    "skills/investment-daily/SKILL.md",
+    "skills/investment-new-strategy/SKILL.md",
+    "skills/investment-help/SKILL.md",
     "scripts/workspace-bootstrap.py",
     "scripts/alpaca-mcp-wrapper.sh",
     "scripts/validate-plugin.py",
@@ -84,6 +88,8 @@ def main() -> int:
         manifest = {}
 
     require(manifest.get("name") == "investment", "plugin.json name must be investment", errors)
+    require(manifest.get("version") == "0.1.1", "plugin.json version must be 0.1.1", errors)
+    require(manifest.get("skills") == "./skills/", "plugin.json must expose ./skills/", errors)
     require(bool(manifest.get("interface", {}).get("defaultPrompt")), "plugin.json needs interface.defaultPrompt", errors)
 
     marketplace_path = ROOT / ".agents/plugins/marketplace.json"
@@ -121,22 +127,39 @@ def main() -> int:
         content = strategy.read_text(encoding="utf-8")
         require("status: paused" in content, f"{strategy.relative_to(ROOT)} must ship paused", errors)
 
-    daily = (ROOT / "commands/daily.md").read_text(encoding="utf-8")
+    daily = (ROOT / "commands/investment-daily.md").read_text(encoding="utf-8")
     require("trading-with-confirmation" in daily, "daily command must document trading-with-confirmation mode", errors)
     require("EXECUTE" in daily, "daily command must require exact EXECUTE confirmation", errors)
     require("workspace-bootstrap.py" in daily, "daily command must run workspace bootstrap", errors)
 
-    setup = (ROOT / "commands/setup.md").read_text(encoding="utf-8")
+    setup = (ROOT / "commands/investment-setup.md").read_text(encoding="utf-8")
     require("workspace-bootstrap.py" in setup, "setup command must run workspace bootstrap", errors)
     require("proposal-only" in setup, "setup command must configure proposal-only mode", errors)
 
     nested_commands = list((ROOT / "commands").glob("*/*.md"))
     require(not nested_commands, "commands must be top-level commands/*.md files for Codex plugin command discovery", errors)
 
+    expected_commands = {
+        "investment-setup": "commands/investment-setup.md",
+        "investment-daily": "commands/investment-daily.md",
+        "investment-new-strategy": "commands/investment-new-strategy.md",
+        "investment-help": "commands/investment-help.md",
+    }
     for command in (ROOT / "commands").glob("*.md"):
+        rel = str(command.relative_to(ROOT))
         content = command.read_text(encoding="utf-8")
-        require(content.startswith("---\n"), f"{command.relative_to(ROOT)} should start with YAML frontmatter", errors)
-        require("description:" in content.split("---", 2)[1], f"{command.relative_to(ROOT)} needs frontmatter description", errors)
+        require(rel in expected_commands.values(), f"unexpected command file: {rel}", errors)
+        require(content.startswith("# /investment-"), f"{rel} should start with a Codex slash-command heading", errors)
+    for command_name, rel in expected_commands.items():
+        content = (ROOT / rel).read_text(encoding="utf-8")
+        require(content.startswith(f"# /{command_name}\n"), f"{rel} should define /{command_name}", errors)
+
+    for skill in (ROOT / "skills").glob("*/SKILL.md"):
+        content = skill.read_text(encoding="utf-8")
+        frontmatter = content.split("---", 2)[1] if content.startswith("---\n") else ""
+        require(content.startswith("---\n"), f"{skill.relative_to(ROOT)} should start with YAML frontmatter", errors)
+        require("name:" in frontmatter, f"{skill.relative_to(ROOT)} needs frontmatter name", errors)
+        require("description:" in frontmatter, f"{skill.relative_to(ROOT)} needs frontmatter description", errors)
 
     for path in text_files():
         rel = str(path.relative_to(ROOT))

@@ -17,10 +17,10 @@ A: Both are supported. Paper is simulated. Live is real money. The `ALPACA_PAPER
 ## Trading & safety
 
 **Q: Will this place trades automatically?**
-A: Not by default. Proposal-only mode never places orders. Trading-with-confirmation can place orders only during `/investment:daily`, after Codex shows the exact batch and you type `EXECUTE <N> ORDERS`.
+A: Not by default. Proposal-only mode never places orders. Trading-with-confirmation can place orders only during `/investment-daily`, after Codex shows the exact batch and you type `EXECUTE <N> ORDERS`.
 
 **Q: Which commands can place trades?**
-A: Only `/investment:daily`, and only in trading-with-confirmation mode. `/investment:setup`, `/investment:new-strategy`, and `/investment:help` never place trades.
+A: Only `/investment-daily`, and only in trading-with-confirmation mode. `/investment-setup`, `/investment-new-strategy`, and `/investment-help` never place trades.
 
 **Q: Can I use trading-with-confirmation with live money?**
 A: Yes, but be careful. If live Alpaca credentials are connected, confirmed orders affect the real account. Test with paper first.
@@ -33,7 +33,7 @@ A: In paper mode no, because it is simulated. In live mode yes, any investment c
 
 ## Strategy questions
 
-**Q: How often should I run `/investment:daily`?**
+**Q: How often should I run `/investment-daily`?**
 A: Once per market day is the intended rhythm. More frequent runs usually add noise unless your strategy says otherwise.
 
 **Q: Can I run multiple strategies?**
@@ -54,11 +54,11 @@ A: Your call. If it contains real portfolio data or trade history, keep it priva
 A: Avoid it. Journal entries are an audit trail. Add corrections in a later memo.
 
 **Q: What does "Strategy notes" mean?**
-A: It is where `/investment:daily` surfaces possible strategy changes. Codex should not auto-edit operational strategy sections.
+A: It is where `/investment-daily` surfaces possible strategy changes. Codex should not auto-edit operational strategy sections.
 
 ## Troubleshooting
 
-**Q: `/investment:daily` says no active strategies.**
+**Q: `/investment-daily` says no active strategies.**
 A: Open `<workspace>/strategies/` and set at least one non-example strategy file to `status: active`.
 
 **Q: Alpaca returns HTTP 401.**
@@ -68,7 +68,7 @@ A: Usually paper/live mismatch. See [Alpaca setup](alpaca-setup.md).
 A: Check Alpaca directly, then check whether you placed orders outside the memo. The daily run should flag reconciliation drift.
 
 **Q: Slash commands are missing.**
-A: Restart Codex and confirm the plugin repo contains `commands/*.md`. The plugin manifest name is `investment`, so the intended commands are `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
+A: Restart Codex and confirm the plugin repo contains `commands/*.md`. The plugin manifest name is `investment`, so the intended commands are `/investment-setup`, `/investment-daily`, `/investment-new-strategy`, and `/investment-help`.
 
 **Q: Can I ask general questions without a command?**
 A: Yes. `AGENTS.md` gives Codex the workspace context.

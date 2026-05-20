@@ -1,12 +1,12 @@
 # Trading mode
 
-Trading-with-confirmation is the optional mode that lets `/investment:daily` submit Alpaca orders after explicit user confirmation.
+Trading-with-confirmation is the optional mode that lets `/investment-daily` submit Alpaca orders after explicit user confirmation.
 
 Proposal-only is still the default. Use trading-with-confirmation only after you are comfortable with paper runs and the strategy files.
 
 ## Enable it
 
-During `/investment:setup`, choose:
+During `/investment-setup`, choose:
 
 ```text
 Trading with confirmation
@@ -28,7 +28,7 @@ The setting is stored in `~/.codex-investment-plugin/config.json` and mirrored i
 
 ## Daily run flow
 
-1. `/investment:daily` bootstraps the workspace.
+1. `/investment-daily` bootstraps the workspace.
 2. It reads active strategies.
 3. It pulls Alpaca account state and market data.
 4. It writes the journal memo.
@@ -68,13 +68,13 @@ Use paper first.
 
 ## What commands can trade?
 
-Only `/investment:daily`.
+Only `/investment-daily`.
 
 These never trade:
 
-- `/investment:setup`
-- `/investment:new-strategy`
-- `/investment:help`
+- `/investment-setup`
+- `/investment-new-strategy`
+- `/investment-help`
 
 ## Audit trail
 
