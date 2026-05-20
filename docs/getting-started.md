@@ -27,16 +27,25 @@ Proposal-only is the default. In proposal-only mode, Codex never places orders; 
 
 ## The 5 steps
 
-### 1. Open the plugin in Codex
+### 1. Install the plugin in Codex
 
-Clone or install the plugin repo:
+Register the public marketplace:
+
+```bash
+codex plugin marketplace add FarzamHejaziK/codex-investment-plugin --ref main
+```
+
+Then open Codex, run `/plugins`, install **Codex Investment Assistant** from the **Codex Investment Plugin** marketplace, and start a new thread.
+
+For local clone/development installation:
 
 ```bash
 git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
 cd codex-investment-plugin
+codex plugin marketplace add .
 ```
 
-Open this folder in Codex.
+Cloning alone does not install the plugin. Codex loads installable plugins through marketplace metadata.
 
 ### 2. Run `/investment:setup`
 

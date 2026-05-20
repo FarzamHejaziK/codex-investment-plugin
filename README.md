@@ -13,7 +13,7 @@
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-blue)](https://openai.com/codex)
 [![Powered by Alpaca](https://img.shields.io/badge/powered%20by-Alpaca-purple)](https://alpaca.markets/)
 
-[About](#about) - [Quick start](#quick-start) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
+[About](#about) - [Quick start](#quick-start) - [Installation](docs/installation.md) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
 
 </div>
 
@@ -69,14 +69,13 @@ By default, it is **proposal-only**: Codex writes the memo and you place orders 
 
 ### 5 Steps
 
-1. Install or clone this plugin repo:
+1. Register this repo as a Codex plugin marketplace:
 
    ```bash
-   git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
-   cd codex-investment-plugin
+   codex plugin marketplace add FarzamHejaziK/codex-investment-plugin --ref main
    ```
 
-2. Open the plugin repo in Codex.
+2. Open Codex, run `/plugins`, install **Codex Investment Assistant** from the **Codex Investment Plugin** marketplace, then start a new thread.
 
 3. Run `/investment:setup`. The wizard:
    - Creates or locates your persistent workspace.
@@ -93,6 +92,8 @@ By default, it is **proposal-only**: Codex writes the memo and you place orders 
 5. Run `/investment:daily`.
 
 The workspace path is stored in `~/.codex-investment-plugin/config.json`. Override it anytime by setting `CODEX_INVESTMENT_WORKSPACE=/path/to/workspace` before running a command.
+
+For local clone/development installation, see [Installation](docs/installation.md). `git clone` plus `cd` alone does not install a Codex plugin; Codex discovers installable plugins through marketplace metadata.
 
 ## The Three Example Strategies
 
@@ -119,6 +120,9 @@ Commands live in [`commands/`](commands/). They are markdown prompts, so you can
 
 ```text
 codex-investment-plugin/
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json
 ├── .codex-plugin/
 │   └── plugin.json
 ├── commands/
@@ -143,6 +147,7 @@ User data lives in the resolved workspace, not in the installed plugin directory
 
 ## Documentation
 
+- [Installation](docs/installation.md)
 - [Getting started](docs/getting-started.md)
 - [Workspace bootstrap](docs/workspace-bootstrap.md)
 - [Alpaca setup](docs/alpaca-setup.md)

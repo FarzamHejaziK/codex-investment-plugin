@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
+    ".agents/plugins/marketplace.json",
     ".codex-plugin/plugin.json",
     "commands/setup.md",
     "commands/daily.md",
@@ -21,6 +22,7 @@ REQUIRED_FILES = [
     "scripts/alpaca-mcp-wrapper.sh",
     "scripts/validate-plugin.py",
     "docs/getting-started.md",
+    "docs/installation.md",
     "docs/alpaca-setup.md",
     "docs/designing-a-strategy.md",
     "docs/faq.md",
@@ -83,6 +85,31 @@ def main() -> int:
 
     require(manifest.get("name") == "investment", "plugin.json name must be investment", errors)
     require(bool(manifest.get("interface", {}).get("defaultPrompt")), "plugin.json needs interface.defaultPrompt", errors)
+
+    marketplace_path = ROOT / ".agents/plugins/marketplace.json"
+    try:
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - validation should report all parse failures plainly.
+        errors.append(f"marketplace.json is invalid: {exc}")
+        marketplace = {}
+
+    plugins = marketplace.get("plugins", [])
+    investment_entries = [entry for entry in plugins if entry.get("name") == "investment"]
+    require(marketplace.get("name") == "codex-investment-plugin", "marketplace name must be codex-investment-plugin", errors)
+    require(len(investment_entries) == 1, "marketplace must expose exactly one investment plugin entry", errors)
+    if investment_entries:
+        entry = investment_entries[0]
+        source = entry.get("source", {})
+        require(source.get("source") == "url", "marketplace investment source must use url for repo-root plugin", errors)
+        require(
+            source.get("url") == "https://github.com/FarzamHejaziK/codex-investment-plugin.git",
+            "marketplace investment source url is wrong",
+            errors,
+        )
+        require(source.get("ref") == "main", "marketplace investment source ref must be main", errors)
+        require(entry.get("policy", {}).get("installation") == "AVAILABLE", "marketplace installation policy must be AVAILABLE", errors)
+        require(entry.get("policy", {}).get("authentication") == "ON_INSTALL", "marketplace auth policy must be ON_INSTALL", errors)
+        require(entry.get("category") == "Productivity", "marketplace category must be Productivity", errors)
 
     for rel in REQUIRED_FILES:
         require((ROOT / rel).exists(), f"missing required file: {rel}", errors)
