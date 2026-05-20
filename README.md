@@ -13,9 +13,17 @@
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-blue)](https://openai.com/codex)
 [![Powered by Alpaca](https://img.shields.io/badge/powered%20by-Alpaca-purple)](https://alpaca.markets/)
 
-[Quick start](#quick-start) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
+[About](#about) - [Quick start](#quick-start) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
 
 </div>
+
+---
+
+## About
+
+`codex-investment-plugin` is a Codex plugin for running personal investment strategy workspaces. It keeps strategies as plain markdown files, pulls Alpaca portfolio data through MCP, writes daily research and trade-proposal memos, and supports an optional confirmation-gated trading mode.
+
+The plugin is designed for user-authored rules, transparent journals, and explicit human control. It is not financial advice, not a robo-advisor, and not an autonomous trading system.
 
 ---
 
