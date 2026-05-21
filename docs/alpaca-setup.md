@@ -113,8 +113,6 @@ Paper:
 
 ```bash
 codex mcp add alpaca \
-  --scope user \
-  --transport stdio \
   --env ALPACA_API_KEY="$(security find-generic-password -a "$USER" -s alpaca-api-key -w)" \
   --env ALPACA_SECRET_KEY="$(security find-generic-password -a "$USER" -s alpaca-secret-key -w)" \
   --env ALPACA_PAPER_TRADE=true \
@@ -125,8 +123,6 @@ Live:
 
 ```bash
 codex mcp add alpaca \
-  --scope user \
-  --transport stdio \
   --env ALPACA_API_KEY="$(security find-generic-password -a "$USER" -s alpaca-api-key -w)" \
   --env ALPACA_SECRET_KEY="$(security find-generic-password -a "$USER" -s alpaca-secret-key -w)" \
   --env ALPACA_PAPER_TRADE=false \
@@ -139,8 +135,6 @@ The wrapper reads macOS Keychain if explicit env vars are absent:
 
 ```bash
 codex mcp add alpaca \
-  --scope user \
-  --transport stdio \
   --env ALPACA_PAPER_TRADE=true \
   -- /absolute/path/to/codex-investment-plugin/scripts/alpaca-mcp-wrapper.sh
 ```
@@ -161,7 +155,12 @@ During the setup workflow, Codex should call `mcp__alpaca__get_account_info` and
 
 1. Generate keys in the other Alpaca panel.
 2. Update secure storage.
-3. Remove and re-add the MCP with the matching `ALPACA_PAPER_TRADE` value.
+3. Remove and re-add the MCP with the matching `ALPACA_PAPER_TRADE` value:
+
+   ```bash
+   codex mcp remove alpaca
+   ```
+
 4. Restart Codex.
 
 Mismatch symptoms: `get_clock` works but account calls return HTTP 401. Fix by matching `PK + true` or `AK + false`.
