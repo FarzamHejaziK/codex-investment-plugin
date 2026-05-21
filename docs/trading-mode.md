@@ -1,34 +1,34 @@
 # Trading mode
 
-Trading-with-confirmation is the optional mode that lets `/investment-daily` submit Alpaca orders after explicit user confirmation.
+Trading-with-confirmation is the optional mode that lets the daily workflow submit Alpaca orders after explicit user confirmation.
 
 Proposal-only is still the default. Use trading-with-confirmation only after you are comfortable with paper runs and the strategy files.
 
 ## Enable it
 
-During `/investment-setup`, choose:
+During the setup workflow, choose:
 
 ```text
 Trading with confirmation
 ```
 
-Or update the workspace config from the plugin repo:
+Or update the workspace config from the workspace repo:
 
 ```bash
-python3 scripts/workspace-bootstrap.py --execution-mode trading-with-confirmation
+python3 scripts/setup-workspace.py --execution-mode trading-with-confirmation
 ```
 
 Switch back:
 
 ```bash
-python3 scripts/workspace-bootstrap.py --execution-mode proposal-only
+python3 scripts/setup-workspace.py --execution-mode proposal-only
 ```
 
-The setting is stored in `~/.codex-investment-plugin/config.json` and mirrored in the workspace marker file.
+The setting is stored in `config/workspace.json`.
 
 ## Daily run flow
 
-1. `/investment-daily` bootstraps the workspace.
+1. The daily workflow checks the workspace.
 2. It reads active strategies.
 3. It pulls Alpaca account state and market data.
 4. It writes the journal memo.
@@ -68,13 +68,13 @@ Use paper first.
 
 ## What commands can trade?
 
-Only `/investment-daily`.
+Only the daily workflow.
 
 These never trade:
 
-- `/investment-setup`
-- `/investment-new-strategy`
-- `/investment-help`
+- setup workflow
+- new-strategy workflow
+- help workflow
 
 ## Audit trail
 

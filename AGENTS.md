@@ -1,46 +1,37 @@
 # AGENTS.md
 
-This is a **Codex plugin for personal investment workspaces** built on top of Codex + the Alpaca MCP. The user defines strategies in a persistent workspace under `strategies/*.md`; the `/investment-daily` slash command reads them, pulls portfolio state from Alpaca, writes a journal memo, and proposes orders. In the default `proposal-only` mode the user executes orders manually. In `trading-with-confirmation` mode, `/investment-daily` may submit only the exact order batch the user confirms.
+This is a **Codex Investment Assistant workspace** built around Codex plus the Alpaca MCP. The cloned repo is the workspace: strategies, journal entries, local config, docs, scripts, and skills all live here.
 
-## How to behave by default
+## How To Behave
 
-When the user chats with you here outside a slash command, assume they want one of:
+When the user asks for investment assistant work, route to the local skill files:
 
-1. **Help understanding the workspace** — what's where, what each command does, how the strategy files work.
-2. **Help thinking through a strategy** — should they build one, modify one, pause one, retire one.
-3. **Help interpreting a memo or portfolio state** — what does the latest journal entry say, what's the cycle state on a target, etc.
+- Setup: read `skills/setup/SKILL.md`.
+- Daily checkpoint: read `skills/daily/SKILL.md`.
+- New strategy: read `skills/new-strategy/SKILL.md`.
+- Help and troubleshooting: read `skills/help/SKILL.md`.
 
-Be conversational. Ask one clarifying question if their intent isn't obvious; then answer concretely.
+The user does not need plugin install commands or slash commands. Natural language is the intended interface.
 
-If they want a guided experience, point them at the right slash command:
+## Hard Rules
 
-- `/investment-help` — general conversational help (this matches most "how do I…" questions).
-- `/investment-setup` — first-time setup (Alpaca keys, MCP wiring).
-- `/investment-daily` — today's run; produces the memo.
-- `/investment-new-strategy` — interactive Q&A to build a new strategy file.
+1. **Default to proposal-only.** Do not place trades unless `config/workspace.json` says `trading-with-confirmation` and the user has typed the exact confirmation phrase for the displayed order batch.
+2. **Use read-only Alpaca calls for analysis.** Account, positions, activity, quotes, bars, and open orders are allowed. Order-placement tools are allowed only inside the confirmed execution section of the daily workflow.
+3. **Do not auto-edit operational strategy sections.** Frontmatter, Watchlist/Universe, Buy strategy, Sizing rules, Risk rules, and Profile are the user's rules. Ask before changing them.
+4. **Never store API keys in this repo.** Not in `config/`, `.env`, strategy files, journal files, docs, or chat. Keys live in OS keychain or user-managed environment.
+5. **Do not fabricate data.** If Alpaca MCP is unavailable or market data is stale, say so.
+6. **This is not financial advice.** The user's strategy files are the authority.
 
-You don't need them to invoke `/investment-help` to be helpful — just help. Suggest the slash command when it's a better tool for what they're trying to do.
+## Workspace Map
 
-## Hard rules — apply in every interaction in this workspace
+- `config/workspace.example.json` - tracked example config.
+- `config/workspace.json` - generated local config, ignored by git.
+- `strategies/` - user-authored investment rules. Example files ship paused.
+- `journal/` - daily memos and optional execution records.
+- `skills/` - the four workflow guides Codex should use.
+- `scripts/setup-workspace.py` - idempotently creates/checks local workspace files.
+- `scripts/alpaca-mcp-wrapper.sh` - starts the Alpaca MCP server from external secrets.
+- `scripts/validate-workspace.py` - checks repo health before publishing.
+- `docs/` - user docs.
 
-1. **Default to proposal-only.** Do not place trades unless `/investment-daily` is running in `trading-with-confirmation` mode and the user has typed the exact confirmation phrase for the displayed order batch.
-2. **Use read-only Alpaca calls for analysis.** Positions, account, activity, quotes, bars — yes. Order-placement tools are allowed only inside the confirmed execution section of `/investment-daily`.
-3. **Don't auto-edit operational sections of any `strategies/<name>.md`.** Frontmatter, Watchlist/Universe, Buy strategy, Sizing rules, Risk rules — the user evolves these manually. The one exception is "Live research notes" sections on strategies with `auto_research: daily`, and only `/investment-daily` does that appending.
-4. **Never put API keys anywhere in this workspace.** Not in `.env`, not in strategy files, not in journal entries, not in chat. Keys live in the OS keyring only.
-5. **Don't fabricate data.** If Alpaca MCP isn't connected, say so. If a quote is stale, say so. An honest short answer beats a confident wrong one.
-6. **This is not financial advice.** The user owns every decision. If they ask "what should I buy?", redirect to "what does your strategy file say to buy today?" — the rules in `strategies/` are the authority, not your opinion.
-
-## Workspace map
-
-- `scripts/workspace-bootstrap.py` — creates or locates the user's persistent workspace. Run this before reading or writing user data.
-- `<workspace>/strategies/` — user's investment rules. One file per strategy. YAML frontmatter declares `status` (`paused` / `active` / `archived`), `account`, `capital_monthly_usd`. `*.example.md` files are inert templates.
-- `<workspace>/journal/` — dated memos written by `/investment-daily`. Read-only history except for explicit correction notes and execution records.
-- `commands/` — the four slash commands: `/investment-setup`, `/investment-daily`, `/investment-new-strategy`, and `/investment-help`.
-- `skills/` — matching Codex skill surfaces so the installed plugin appears in model-visible plugin/skill context even when slash-command discovery is unavailable.
-- `.codex-plugin/plugin.json` — Codex plugin metadata.
-- `docs/` — `getting-started.md`, `alpaca-setup.md`, `designing-a-strategy.md`, `faq.md`, `safety-and-limits.md`.
-- `README.md`, `CHANGELOG.md`, `LICENSE` — repo metadata.
-
-## When in doubt
-
-Always read the relevant file before answering questions about it. The strategy files and command files are the source of truth — not your memory of them.
+Always read relevant local files before answering questions about them.

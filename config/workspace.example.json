@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "workspace_type": "codex-investment-workspace",
+  "execution_mode": "proposal-only",
+  "alpaca_account_mode": null,
+  "created_at": null
+}

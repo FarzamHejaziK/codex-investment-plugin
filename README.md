@@ -4,7 +4,7 @@
 
 # codex-investment-plugin
 
-**A Codex plugin for designing, tracking, and running personal investment strategies with Alpaca.**
+**A Codex-ready investment workspace for designing, tracking, and running personal Alpaca strategies.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/FarzamHejaziK/codex-investment-plugin?style=social)](https://github.com/FarzamHejaziK/codex-investment-plugin/stargazers)
@@ -13,7 +13,7 @@
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-blue)](https://openai.com/codex)
 [![Powered by Alpaca](https://img.shields.io/badge/powered%20by-Alpaca-purple)](https://alpaca.markets/)
 
-[About](#about) - [Quick start](#quick-start) - [Installation](docs/installation.md) - [Documentation](#documentation) - [Examples](#the-three-example-strategies) - [FAQ](docs/faq.md) - [Safety](docs/safety-and-limits.md)
+[About](#about) - [Quick Start](#quick-start) - [Workspace](docs/workspace.md) - [Docs](#documentation) - [Safety](docs/safety-and-limits.md)
 
 </div>
 
@@ -21,159 +21,92 @@
 
 ## About
 
-`codex-investment-plugin` is a Codex plugin that automates your investing routine every morning. Rules over emotion. No fear, no FOMO. It ships with three default strategies — dip-buying, AI value-chain DCA, and mean-reversion active trading — and helps you build your own if you'd like.
+`codex-investment-plugin` is now a cloned Codex workspace. The repo folder is the workspace: it contains the strategy files, journal folder, local config example, docs, scripts, and Codex skill instructions.
 
-The plugin keeps strategies as plain markdown files, pulls Alpaca portfolio data through MCP, writes daily research and trade-proposal memos, and supports an optional confirmation-gated trading mode.
+It ships with three paused example strategies: dip-buying, AI value-chain DCA, and mean-reversion active trading. You can adapt them or ask Codex to create a new strategy.
 
-The plugin is designed for user-authored rules, transparent journals, and explicit human control. It is not financial advice, not a robo-advisor, and not an autonomous trading system.
+The default mode is **proposal-only**. Codex writes daily memos and proposed orders; you place any trades yourself. Optional `trading-with-confirmation` mode can submit Alpaca orders only after Codex shows the exact batch and you type the exact confirmation phrase.
 
----
-
-You define your rules in markdown strategy files. Each market day you run `/investment-daily`. It reads your Alpaca portfolio, checks your rules, writes a dated journal memo, and tells you exactly what the rules propose today.
-
-By default, it is **proposal-only**: Codex writes the memo and you place orders yourself in Alpaca. If you explicitly choose **trading-with-confirmation** during setup, `/investment-daily` may submit only the exact order batch shown in chat after you type the exact confirmation phrase.
-
-> **This is not financial advice.** This is a tool for organizing and tracking your own investment decisions. Past performance does not guarantee future results. If you use live Alpaca credentials or trading-with-confirmation mode, real money can move. Read [Safety and limits](docs/safety-and-limits.md) and [Trading mode](docs/trading-mode.md) first.
-
----
-
-## What It Does
-
-1. Creates or reuses a persistent workspace for your personal files.
-2. Seeds example strategy files into `<workspace>/strategies/`.
-3. Runs four Codex slash commands:
-   - `/investment-setup`
-   - `/investment-daily`
-   - `/investment-new-strategy`
-   - `/investment-help`
-4. Pulls Alpaca account state and market data through the Alpaca MCP.
-5. Writes daily memos to `<workspace>/journal/`.
-6. Optionally submits confirmed Alpaca orders when trading-with-confirmation mode is enabled.
-
-## What It Does Not Do
-
-- It does not provide financial advice.
-- It does not invent securities outside your strategy files.
-- It does not trade by default.
-- It does not place orders from setup, help, or strategy-builder commands.
-- It does not silently edit operational strategy rules.
+> This is not financial advice. This workspace helps organize and execute your own rules. Live trading can move real money.
 
 ## Quick Start
 
-### What You Need
+```bash
+git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
+cd codex-investment-plugin
+python3 scripts/setup-workspace.py
+codex
+```
 
-- An [Alpaca account](https://alpaca.markets/) for paper or live trading.
-- Codex with plugin support.
-- `uv` / `uvx` for the Alpaca MCP server.
-- About 30 minutes for first-time setup.
+Then ask Codex:
 
-### 5 Steps
+```text
+Set up my investment workspace.
+```
 
-1. Register this repo as a Codex plugin marketplace:
+Codex should follow `AGENTS.md` and the local skills in `skills/`.
 
-   ```bash
-   codex plugin marketplace add FarzamHejaziK/codex-investment-plugin --ref main
-   ```
+## What It Does
 
-2. Open Codex, run `/plugins`, install **Codex Investment Assistant** from the **Codex Investment Plugin** marketplace, then start a new thread.
-
-3. Run `/investment-setup`. The wizard:
-   - Creates or locates your persistent workspace.
-   - Asks paper or live.
-   - Asks proposal-only or trading-with-confirmation.
-   - Walks you through Alpaca API keys and Codex MCP setup.
-   - Copies example strategies into your workspace and asks which to configure.
-
-4. Activate at least one strategy when ready:
-   - Open `<workspace>/strategies/<name>.md`.
-   - Set `status: active`.
-   - Confirm `capital_monthly_usd` matches your intended budget.
-
-5. Run `/investment-daily`.
-
-The workspace path is stored in `~/.codex-investment-plugin/config.json`. Override it anytime by setting `CODEX_INVESTMENT_WORKSPACE=/path/to/workspace` before running a command.
-
-For local clone/development installation, see [Installation](docs/installation.md). `git clone` plus `cd` alone does not install a Codex plugin; Codex discovers installable plugins through marketplace metadata.
-
-## The Three Example Strategies
-
-All ship `status: paused` for safety. Setup can copy and configure them, but the user decides whether to activate.
-
-| File | Style | Risk | Good for |
-|---|---|---|---|
-| [`dip-buying.example.md`](strategies/dip-buying.example.md) | Continuous-formula dip-buying on broad ETFs (VTI, QQQ). Buy-only. | Low | Long-term accumulation with opportunistic dip overlay |
-| [`ai-value-chain.example.md`](strategies/ai-value-chain.example.md) | Monthly equal-weight DCA across 8 AI infrastructure picks-and-shovels names. Buy-only. Daily research. | Medium | Themed long-term exposure beyond mega-cap names |
-| [`active-trading.example.md`](strategies/active-trading.example.md) | Daily-checkpoint mean reversion on Mag 10 + ETFs. Buy and sell. Quarterly review. | High | Experimentation with capital you can afford to lose |
-
-## Slash Commands
-
-| Command | When to run | What it does |
-|---|---|---|
-| `/investment-setup` | Once, after install | Workspace bootstrap, Alpaca keys, MCP wiring, connection verification, strategy configuration |
-| `/investment-daily` | Every market morning | Reads strategies, pulls portfolio, proposes orders, writes journal entry, optionally submits confirmed orders |
-| `/investment-new-strategy` | Whenever you want a new strategy | Interactive Q&A; writes a paused strategy file in the workspace |
-| `/investment-help` | Anytime you're unsure | Conversational guide for orientation, strategy design, and troubleshooting |
-
-Commands live in [`commands/`](commands/). They are markdown prompts, so you can inspect or adapt them. The command names are prefixed with `investment-` because Codex plugin commands are discovered as global slash commands.
+1. Keeps your strategies as markdown files under `strategies/`.
+2. Keeps daily memos and execution records under `journal/`.
+3. Stores non-secret local settings in `config/workspace.json`.
+4. Uses Alpaca MCP for account, position, activity, quote, bar, and optional order tools.
+5. Provides four skill workflows:
+   - `setup`
+   - `daily`
+   - `new-strategy`
+   - `help`
 
 ## File Layout
 
 ```text
 codex-investment-plugin/
-├── .agents/
-│   └── plugins/
-│       └── marketplace.json
-├── .codex-plugin/
-│   └── plugin.json
-├── commands/
-│   ├── investment-setup.md
-│   ├── investment-daily.md
-│   ├── investment-new-strategy.md
-│   └── investment-help.md
-├── skills/
-│   ├── investment-setup/
-│   ├── investment-daily/
-│   ├── investment-new-strategy/
-│   └── investment-help/
-├── scripts/
-│   ├── workspace-bootstrap.py
-│   ├── alpaca-mcp-wrapper.sh
-│   └── validate-plugin.py
-├── strategies/
-│   └── *.example.md
+├── config/
+│   └── workspace.example.json
+├── docs/
 ├── journal/
 │   └── .gitkeep
-├── docs/
+├── scripts/
+│   ├── setup-workspace.py
+│   ├── alpaca-mcp-wrapper.sh
+│   └── validate-workspace.py
+├── skills/
+│   ├── setup/
+│   ├── daily/
+│   ├── new-strategy/
+│   └── help/
+├── strategies/
+│   ├── dip-buying.example.md
+│   ├── ai-value-chain.example.md
+│   └── active-trading.example.md
 ├── AGENTS.md
 └── README.md
 ```
 
-User data lives in the resolved workspace, not in the installed plugin directory, unless you explicitly choose this repo as the workspace.
+## Example Strategies
+
+| File | Style | Risk |
+|---|---|---|
+| `strategies/dip-buying.example.md` | Buy-only broad ETF dip-buying | Low |
+| `strategies/ai-value-chain.example.md` | AI infrastructure DCA basket | Medium |
+| `strategies/active-trading.example.md` | Mean-reversion active trading | High |
+
+All examples ship with `status: paused`.
 
 ## Documentation
 
-- [Installation](docs/installation.md)
 - [Getting started](docs/getting-started.md)
-- [Workspace bootstrap](docs/workspace-bootstrap.md)
+- [Workspace](docs/workspace.md)
 - [Alpaca setup](docs/alpaca-setup.md)
 - [Trading mode](docs/trading-mode.md)
 - [Designing a strategy](docs/designing-a-strategy.md)
 - [FAQ](docs/faq.md)
 - [Safety and limits](docs/safety-and-limits.md)
 
-## Safety Model
-
-Three layers:
-
-1. **Strategy layer.** Strategy files define allowed instruments, budget, sizing, and buy/sell scope.
-2. **Prompt layer.** `/investment-daily` must write the memo before any execution and cannot submit undisplayed orders.
-3. **Confirmation layer.** In trading-with-confirmation mode, the user must type `EXECUTE <N> ORDERS` for the exact displayed batch. Anything else stops execution.
-
-Proposal-only remains the default and safest mode.
-
 ## Source Attribution
 
-This Codex plugin is adapted from [FarzamHejaziK/claude-investment-assistant](https://github.com/FarzamHejaziK/claude-investment-assistant), currently tracked as the `upstream` remote for parity updates.
+This workspace is adapted from [FarzamHejaziK/claude-investment-assistant](https://github.com/FarzamHejaziK/claude-investment-assistant), with the runtime changed from Claude-oriented commands to Codex workspace skills.
 
 ## License
 

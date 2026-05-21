@@ -1,11 +1,11 @@
 # Contributing
 
-This repo is a Codex plugin adapted from the Claude Investment Assistant template. Contributions should improve the plugin, prompts, scripts, docs, examples, or safety model.
+This repo is a Codex workspace adapted from the Claude Investment Assistant template. Contributions should improve the skills, prompts, scripts, docs, examples, or safety model.
 
 ## Helpful contributions
 
-- Bug fixes in `commands/*.md`
-- Workspace bootstrap improvements
+- Bug fixes in `skills/*/SKILL.md`
+- Workspace setup improvements
 - Alpaca setup and MCP troubleshooting improvements
 - Documentation fixes
 - Safer trading-with-confirmation guardrails
@@ -31,13 +31,13 @@ This repo is a Codex plugin adapted from the Claude Investment Assistant templat
 Run:
 
 ```bash
-python3 scripts/validate-plugin.py
+python3 scripts/validate-workspace.py
 ```
 
-Also run the workspace bootstrap manually:
+Also run the workspace setup manually:
 
 ```bash
-python3 scripts/workspace-bootstrap.py --json
+python3 scripts/setup-workspace.py --json
 ```
 
 ## License

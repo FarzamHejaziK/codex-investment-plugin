@@ -1,79 +1,87 @@
-# Codex Investment Assistant Public Plugin Plan
+# Codex Investment Workspace Plan
 
-## Current Implementation State
+## Direction Change
 
-- Local repo path: `/Users/ferzamh/code-git-local/codex-investment-plugin`
-- Source baseline: `FarzamHejaziK/claude-investment-assistant` `main` at commit `9607f6b52214f20e340c1c27491766b78b7acc78`
-- Local remote:
-  - `upstream` points at `https://github.com/FarzamHejaziK/claude-investment-assistant.git`
-  - upstream push URL is disabled locally to avoid accidentally pushing Codex changes back to the Claude repo
-- Added Codex plugin manifest: `.codex-plugin/plugin.json`
-- Added Codex commands in `commands/`
-- Added workspace bootstrap, Alpaca wrapper, and validation scripts in `scripts/`
-- Added Codex docs for workspace bootstrap and trading mode
-- Removed the Claude runtime command/config directory from the Codex plugin
-- This document is `.docs/plan.md`.
+This repo should no longer be optimized as a Codex plugin marketplace package.
+
+The new product is a **Codex-ready investment workspace**:
+
+- A user clones the repo.
+- The repo folder itself is the workspace.
+- All working folders are already present in the repo.
+- Reusable assistant behavior is exposed through Codex **skills**, not plugin install commands.
+- Strategy files, journal files, docs, scripts, and setup state live together in the workspace unless the user intentionally moves them.
+
+This should feel closer to the original Claude Investment Assistant workspace model, but translated cleanly to Codex.
 
 ## Implementation Status
 
 Implemented in this repo:
 
-- Phase 1: upstream parity baseline and source attribution
-- Phase 2: Codex command conversion
-- Phase 3: workspace bootstrap
-- Phase 4: Alpaca setup for Codex
-- Phase 5: optional trading-with-confirmation mode
-- Phase 6: documentation conversion
-- Phase 7: validation script and dry-run bootstrap testing path
-
-Remaining release operation:
-
-- Phase 8: tag a release after final manual review and any marketplace/install workflow checks.
+- Plugin marketplace metadata was removed.
+- Old slash-command files were removed.
+- The command surface is now four workspace skills: `setup`, `daily`, `new-strategy`, and `help`.
+- The repo root is the workspace.
+- `scripts/setup-workspace.py` creates/checks local workspace files.
+- `scripts/validate-workspace.py` validates the workspace shape before publishing.
+- User docs now describe clone-and-open workflow, not plugin installation.
 
 ## Product Goal
 
-Create a public Codex plugin that mirrors `FarzamHejaziK/claude-investment-assistant` as closely as possible, with only these intentional changes:
+Create a public repo that a user can clone and immediately open in Codex:
 
-1. Replace Claude-specific packaging, commands, documentation, and setup wording with Codex equivalents.
-2. Preserve the strategy-file workflow, examples, setup wizard, help command, new-strategy builder, daily memo format, journal behavior, and safety explanations unless Codex requires wording changes.
-3. Add optional trading mode: when the user explicitly chooses trading and confirms the exact order batch, the plugin can place Alpaca orders directly.
-4. Add workspace bootstrap behavior: when the plugin starts or a command runs and no workspace path is configured, create or locate a persistent user workspace and read/write strategy and journal files there.
+```bash
+git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
+cd codex-investment-plugin
+codex
+```
 
-The default behavior should remain proposal-only. Trading must be opt-in, explicit, auditable, and reversible only by the user's brokerage actions.
+Inside Codex, the user should be able to ask naturally:
 
-## Public Repo Strategy
+```text
+Set up my investment workspace.
+Run my daily investment checkpoint.
+Create a new investment strategy.
+Help me understand this workspace.
+```
 
-Recommended approach: create a new public GitHub repo named `FarzamHejaziK/codex-investment-plugin`, not a GitHub fork.
+Codex should pick up the repo guidance and skills from the workspace and run the right workflow.
 
-Reasoning:
+## Key Product Decisions
 
-- This is a product adaptation with different runtime behavior, not just a patch branch.
-- The repo can still keep full attribution to the Claude source in `README.md`, `CHANGELOG.md`, and this plan.
-- Keeping `upstream` as a remote lets us regularly pull new Claude-template changes and re-apply the Codex conversion.
-- A non-fork public repo avoids GitHub UI confusion around a Claude-specific upstream when users are installing a Codex plugin.
+1. **Repo folder is the default workspace.**
+   - No hidden default workspace in `~/Documents` unless the user explicitly configures one.
+   - `strategies/`, `journal/`, `config/`, and `docs/` are first-class workspace folders.
 
-Alternative: fork `claude-investment-assistant`, rename the fork, and adapt in place. This preserves GitHub's fork relationship but makes the plugin appear Claude-derived in GitHub navigation. Use this only if preserving fork ancestry is more important than clarity for Codex users.
+2. **Skills are the main interaction model.**
+   - Keep `skills/setup/SKILL.md`.
+   - Keep `skills/daily/SKILL.md`.
+   - Keep `skills/new-strategy/SKILL.md`.
+   - Keep `skills/help/SKILL.md`.
+   - Old slash-command markdown files are removed; behavior lives in the skill bodies and `AGENTS.md`.
 
-## Target Repository Layout
+3. **Plugin metadata becomes optional or removed.**
+   - `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` are no longer the main install path.
+   - They are removed entirely.
+   - README should not tell normal users to run `codex plugin marketplace add`.
+
+4. **Workspace setup should be local and obvious.**
+   - The repo should include every needed folder.
+   - Setup should create missing local files only when needed.
+   - Secrets must never be written to the repo.
+
+5. **Trading stays opt-in and confirmation-gated.**
+   - Default remains proposal-only.
+   - Direct Alpaca order execution is allowed only after the user selects trading-with-confirmation and confirms the exact displayed order batch.
+
+## Target Workspace Layout
 
 ```text
 codex-investment-plugin/
-├── .codex-plugin/
-│   └── plugin.json
-├── commands/
-│   ├── setup.md
-│   ├── daily.md
-│   ├── new-strategy.md
-│   └── help.md
-├── scripts/
-│   ├── workspace-bootstrap.py
-│   ├── alpaca-mcp-wrapper.sh
-│   └── validate-plugin.py
-├── strategies/
-│   ├── dip-buying.example.md
-│   ├── ai-value-chain.example.md
-│   └── active-trading.example.md
-├── journal/
+├── .docs/
+│   └── plan.md
+├── config/
+│   ├── workspace.example.json
 │   └── .gitkeep
 ├── docs/
 │   ├── getting-started.md
@@ -82,7 +90,26 @@ codex-investment-plugin/
 │   ├── faq.md
 │   ├── safety-and-limits.md
 │   ├── trading-mode.md
-│   └── workspace-bootstrap.md
+│   └── workspace.md
+├── journal/
+│   └── .gitkeep
+├── scripts/
+│   ├── alpaca-mcp-wrapper.sh
+│   ├── setup-workspace.py
+│   └── validate-workspace.py
+├── skills/
+│   ├── setup/
+│   │   └── SKILL.md
+│   ├── daily/
+│   │   └── SKILL.md
+│   ├── new-strategy/
+│   │   └── SKILL.md
+│   └── help/
+│       └── SKILL.md
+├── strategies/
+│   ├── dip-buying.example.md
+│   ├── ai-value-chain.example.md
+│   └── active-trading.example.md
 ├── AGENTS.md
 ├── README.md
 ├── CHANGELOG.md
@@ -92,366 +119,222 @@ codex-investment-plugin/
 └── .gitignore
 ```
 
-Notes:
+## Phase 1: Reframe The Repo
 
-- `commands/*.md` plus plugin manifest name `investment` provide the intended Codex command names: `/investment:setup`, `/investment:daily`, `/investment:new-strategy`, and `/investment:help`.
-- `AGENTS.md` replaces `CLAUDE.md` as the Codex workspace guidance file.
-- Keep `.claude/` out of the final repo unless we intentionally support both Claude and Codex. The user request is to change Claude to Codex.
-- Keep the three example strategies functionally identical to upstream, including `status: paused` defaults.
-
-## Phase 1: Upstream Parity Baseline
-
-1. Confirm upstream is current:
+1. Rename the public-facing concept from "plugin" to "workspace" everywhere:
+   - README
+   - docs
+   - AGENTS.md
+   - script names and comments
+   - validation output
+2. Decide whether to rename the GitHub repo later.
+   - Current repo can stay `codex-investment-plugin` for continuity.
+   - README should still say this is now a workspace repo.
+3. Remove normal-user plugin installation instructions.
+4. Replace install flow with:
 
    ```bash
-   git fetch upstream main
-   git rev-parse upstream/main
+   git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git
+   cd codex-investment-plugin
+   codex
    ```
-
-2. Record the upstream commit in `CHANGELOG.md` and `README.md`.
-3. Keep source wording identical wherever possible.
-4. Build a parity checklist:
-   - `.claude/commands/investment/setup.md` -> `commands/setup.md`
-   - `.claude/commands/investment/daily.md` -> `commands/daily.md`
-   - `.claude/commands/investment/new-strategy.md` -> `commands/new-strategy.md`
-   - `.claude/commands/investment/help.md` -> `commands/help.md`
-   - `CLAUDE.md` -> `AGENTS.md`
-   - `.claude/settings.json` -> Codex setup guidance plus optional `.mcp.json` if the Codex plugin runtime supports bundling MCP server declarations
-5. Add a small validation script that reports any source files not yet converted.
 
 Acceptance criteria:
 
-- Every upstream command exists in Codex command form.
-- Every upstream doc exists and has only intentional Claude-to-Codex changes.
-- Example strategies diff cleanly except for references to command names or assistant runtime.
+- README no longer says users must install via `/plugins`.
+- A new user understands that cloning the repo is the install step.
+- `plugin` only appears in historical attribution, legacy notes, or if the repo name is mentioned.
 
-## Phase 2: Codex Command Conversion
+## Phase 2: Make Skills The Command Surface
 
-For each command:
-
-1. Remove Claude frontmatter such as `allowed-tools` if Codex does not use it.
-2. Replace product names:
-   - `Claude Code` -> `Codex`
-   - `Claude` -> `Codex`
-   - `claude mcp ...` -> `codex mcp ...`
-   - `/mcp` references -> the Codex-equivalent MCP inspection flow
-   - `.claude/commands/investment/` -> `commands/`
-   - `.claude/settings.json` -> Codex MCP / plugin permission setup
-3. Preserve the user-facing workflow:
-   - `/investment:setup` remains the setup wizard.
-   - `/investment:daily` remains the daily run.
-   - `/investment:new-strategy` remains the strategy builder.
-   - `/investment:help` remains conversational help.
-4. Update hard rules so they reflect the new two-mode system:
-   - Proposal-only mode: never place trades.
-   - Trading mode: may place only the confirmed orders generated by that run.
-   - Setup and help commands: never place trades.
-   - New-strategy command: never place trades.
+1. Treat `skills/` as the primary behavior layer.
+2. Expand each skill so it is self-contained enough to run without loading old `commands/*.md`.
+3. Keep the four user workflows:
+   - setup
+   - daily checkpoint
+   - new strategy builder
+   - help and troubleshooting
+4. Update AGENTS.md to tell Codex to use these skills for matching requests.
+5. Do not keep slash-command wrappers in the repo.
 
 Acceptance criteria:
 
-- A repo-wide search for `Claude` returns only historical attribution or upstream comparison notes.
-- A repo-wide search for `.claude` returns no runtime references.
-- A repo-wide search for `claude mcp` returns no runtime setup commands.
+- `AGENTS.md` routes natural-language investment requests to the matching `skills/*/SKILL.md` file.
+- The user can type natural language instead of remembering slash commands.
+- Skills reference workspace-local files with clear relative paths.
 
-## Phase 3: Workspace Bootstrap
+## Phase 3: Workspace-Local Setup
 
-Problem: a public plugin may be installed globally, but strategy and journal files are user data. The plugin needs a durable workspace path.
+Replace `scripts/workspace-bootstrap.py` with `scripts/setup-workspace.py`.
 
-Implement `scripts/workspace-bootstrap.py` with this resolution order:
+Behavior:
 
-1. If `CODEX_INVESTMENT_WORKSPACE` is set:
-   - Expand `~`.
-   - Create the directory if missing.
-   - Validate it is writable.
-   - Use it.
-2. Else if the current working directory has the marker file `.investment-assistant-workspace.json`, use the current directory.
-3. Else if `~/.codex-investment-plugin/config.json` exists and contains a valid `workspace_path`, use that path.
-4. Else create a default workspace:
-   - macOS/Linux: `~/Documents/codex-investment-plugin-workspace`
-   - Windows: `%USERPROFILE%\Documents\codex-investment-plugin-workspace`
-5. Write `~/.codex-investment-plugin/config.json`:
-
-   ```json
-   {
-     "workspace_path": "<absolute path>",
-     "created_at": "<ISO timestamp>",
-     "plugin_version": "0.1.0"
-   }
-   ```
-
-6. Write `<workspace>/.investment-assistant-workspace.json`:
+1. Treat the repo root as the workspace when it contains `AGENTS.md`, `skills/`, `strategies/`, and `journal/`.
+2. Create missing folders:
+   - `config/`
+   - `journal/`
+   - `strategies/`
+3. Create `config/workspace.json` from `config/workspace.example.json` if missing.
+4. Never write API keys into `config/`.
+5. Record local settings only:
 
    ```json
    {
      "schema_version": 1,
-     "workspace_type": "codex-investment-plugin",
-     "created_by": "codex-investment-plugin",
-     "source_upstream": "FarzamHejaziK/claude-investment-assistant",
-     "source_commit": "9607f6b52214f20e340c1c27491766b78b7acc78"
+     "workspace_type": "codex-investment-workspace",
+     "execution_mode": "proposal-only",
+     "alpaca_account_mode": null,
+     "created_at": "<ISO timestamp>"
    }
    ```
 
-7. Seed the workspace if missing:
-   - Copy `strategies/*.example.md` from the plugin repo.
-   - Create `journal/.gitkeep`.
-   - Optionally copy `docs/` as read-only reference docs or write a `README.md` that links back to the plugin docs.
-8. Print the selected workspace path at the start of setup and daily runs.
-
-Command behavior:
-
-- `/investment:setup` must run bootstrap before asking Alpaca questions.
-- `/investment:daily` must run bootstrap before reading `strategies/` or `journal/`.
-- `/investment:new-strategy` must run bootstrap before validating or writing strategy files.
-- `/investment:help` can run bootstrap only if the user asks about local files.
+6. Keep examples in `strategies/*.example.md`.
+7. New user strategy files are created as `strategies/<name>.md`.
 
 Acceptance criteria:
 
-- Fresh plugin install with no config creates exactly one workspace and reuses it on the next run.
-- Setting `CODEX_INVESTMENT_WORKSPACE` overrides the default.
-- The plugin never writes user strategy or journal files into the installed plugin directory unless that directory is explicitly selected as the workspace.
+- Running setup from the repo does not create `~/Documents/codex-investment-plugin-workspace`.
+- Running setup twice is idempotent.
+- The repo has all user-visible working folders from the beginning.
 
-## Phase 4: Alpaca Setup for Codex
+## Phase 4: Alpaca Setup
 
-Keep the same Alpaca MCP server and key-storage philosophy, translated to Codex.
+Keep the Alpaca MCP approach, but document it as workspace setup rather than plugin setup.
 
-Setup command changes:
+Setup skill should:
 
-1. Ask paper or live up front, same as upstream.
-2. Ask execution mode:
-   - `proposal-only` (recommended default): write memos and proposed orders; user places orders manually.
-   - `trading-with-confirmation`: write memos, then allow user-confirmed order placement.
-3. Store the execution mode in the workspace marker or config:
-
-   ```json
-   {
-     "execution_mode": "proposal-only"
-   }
-   ```
-
-4. Generate setup commands using Codex:
-
-   ```bash
-   codex mcp add alpaca \
-     --scope user \
-     --transport stdio \
-     --env ALPACA_API_KEY="$(security find-generic-password -a "$USER" -s alpaca-api-key -w)" \
-     --env ALPACA_SECRET_KEY="$(security find-generic-password -a "$USER" -s alpaca-secret-key -w)" \
-     --env ALPACA_PAPER_TRADE=true \
-     -- uvx --python 3.12 alpaca-mcp-server
-   ```
-
-5. Keep secrets out of repo files.
-6. Continue supporting OS-native secure storage:
-   - macOS Keychain
-   - Linux `secret-tool` or `pass`
-   - Windows Credential Manager
-   - `.env` fallback only if clearly marked as gitignored and less preferred
+1. Ask paper or live.
+2. Ask proposal-only or trading-with-confirmation.
+3. Store only non-secret choices in `config/workspace.json`.
+4. Store secrets in the OS keychain or user-managed environment, never in the repo.
+5. Register the Alpaca MCP through Codex user config.
+6. Verify with read-only account calls before any daily run.
 
 Acceptance criteria:
 
-- Setup docs contain no Claude MCP command.
-- Setup verifies account with a read-only call before enabling daily runs.
-- Paper/live account mismatch is detected before any trade proposal or order execution.
+- The setup skill can guide a non-programmer from clone to connected Alpaca MCP.
+- Paper/live mismatch is detected before proposals.
+- No secret values appear in git-tracked files.
 
-## Phase 5: Optional Trading Mode
+## Phase 5: Daily Checkpoint
 
-Trading mode is the only intentional behavior difference from upstream.
+The daily skill should:
 
-Design principles:
-
-- Proposal-only remains the default.
-- Trading requires setup-time opt-in or an explicit later config change.
-- No command places trades unless the user asks for trading mode during that run or has saved `execution_mode: trading-with-confirmation`.
-- Every order batch requires an exact human confirmation before calling Alpaca order endpoints.
-- The assistant only places orders derived from the active strategy files and current daily-run computation.
-
-Daily command flow in trading mode:
-
-1. Run the exact same analysis as proposal-only mode.
-2. Write the same daily memo first, including proposed orders.
-3. Build an order ticket list:
-
-   ```json
-   {
-     "run_id": "YYYY-MM-DD/<hash>",
-     "account_mode": "paper|live",
-     "orders": [
-       {
-         "strategy": "dip-buying",
-         "symbol": "VTI",
-         "side": "buy",
-         "notional": 50,
-         "type": "market",
-         "time_in_force": "day",
-         "reason": "VTI is -5.0% from 50d high"
-       }
-     ]
-   }
-   ```
-
-4. Preflight checks before confirmation:
-   - Alpaca market clock.
-   - Account mode matches configured paper/live choice.
-   - Buying power / cash / SGOV funding is sufficient.
-   - Quotes are fresh enough for the strategy.
-   - There are no duplicate open orders for the same strategy/symbol/run.
-   - The same `run_id` has not already executed.
-5. Present the exact order batch and require a typed confirmation:
+1. Run workspace setup/check first.
+2. Read `config/workspace.json`.
+3. Read active files from `strategies/*.md`.
+4. Pull Alpaca account state and market data through MCP.
+5. Write a dated memo under `journal/YYYY-MM-DD.md`.
+6. Propose orders according to strategy rules.
+7. In proposal-only mode, stop there.
+8. In trading-with-confirmation mode, show the exact order batch and require:
 
    ```text
-   Type EXECUTE 3 ORDERS to place these orders in Alpaca.
+   EXECUTE <N> ORDERS
    ```
 
-6. Only after exact confirmation call the Alpaca order placement tool.
-7. Use Alpaca order endpoints conservatively:
-   - Fractional BUYs: prefer notional market orders when allowed.
-   - SELLs: compute shares from held quantity and notional target; never sell more than held.
-   - SGOV funding sell legs must be placed before dependent buy legs.
-   - Do not submit extended-hours orders unless a strategy explicitly permits it.
-8. Record results in the journal:
-   - Order ID
-   - Symbol
-   - Side
-   - Submitted quantity or notional
-   - Status
-   - Timestamp
-   - Any rejected order error
-9. If any order fails, stop the remaining dependent orders and write a clear failure note.
+Acceptance criteria:
 
-Commands allowed to trade:
+- No active strategies means a clear stop message.
+- Proposal-only mode never places trades.
+- Trading mode cannot submit undisplayed or modified orders.
 
-- `/investment:daily` only.
+## Phase 6: Strategy Builder
 
-Commands not allowed to trade:
+The new-strategy skill should:
 
-- `/investment:setup`
-- `/investment:new-strategy`
-- `/investment:help`
+1. Ask one question at a time.
+2. Generate a complete strategy file under `strategies/<name>.md`.
+3. Default every new strategy to `status: paused`.
+4. Include frontmatter, allowed instruments, budget, sizing, risk rules, and review cadence.
+5. Tell the user exactly how to activate the strategy.
 
 Acceptance criteria:
 
-- In proposal-only mode, no order placement tools are called.
-- In trading mode without exact confirmation, no order placement tools are called.
-- In trading mode with exact confirmation, only the displayed order batch is submitted.
-- A second run on the same day does not duplicate executed orders unless the user explicitly asks for a new run and acknowledges prior execution.
-- All executions are auditable in `journal/<YYYY-MM-DD>.md`.
+- The builder never creates active strategies by surprise.
+- The output is readable markdown, not hidden config.
+- The daily skill can parse the generated file without special cases.
 
-## Phase 6: Documentation Conversion
+## Phase 7: Documentation Rewrite
 
-Update docs from Claude to Codex while preserving content.
+Update docs for the workspace model:
 
-Files to update:
-
-- `README.md`
-- `docs/getting-started.md`
-- `docs/alpaca-setup.md`
-- `docs/designing-a-strategy.md`
-- `docs/faq.md`
-- `docs/safety-and-limits.md`
-- `CONTRIBUTING.md`
-- `SECURITY.md`
-- `CHANGELOG.md`
-- `AGENTS.md`
-
-Add new docs:
-
-- `docs/trading-mode.md`
-- `docs/workspace-bootstrap.md`
-
-Required documentation changes:
-
-- Replace "template clone" assumptions with "plugin creates or uses a workspace".
-- Explain where user data lives.
-- Explain how to override the workspace path.
-- Explain proposal-only vs trading-with-confirmation.
-- Update safety doc from "not an autotrader" to "not an autonomous trader".
-- Make clear that optional trading mode can place real orders in live mode.
-- Keep the financial disclaimer.
-- Keep example strategy warnings, especially active trading underperformance warnings.
+1. `docs/getting-started.md`
+   - clone repo
+   - open Codex
+   - ask setup skill to run
+2. `docs/workspace.md`
+   - explain folders and local config
+3. `docs/alpaca-setup.md`
+   - Codex MCP setup
+4. `docs/trading-mode.md`
+   - confirmation-gated execution
+5. `docs/faq.md`
+   - no plugin install flow
+   - how to update the repo with `git pull`
 
 Acceptance criteria:
 
-- A non-programmer can install the plugin, run setup, find their workspace, and understand whether trades can be placed.
-- Public README makes the trade-execution difference obvious in the first screen.
-- Security doc explains how to report any unintended-trading or key-leak issue.
+- A user can follow docs without knowing what a Codex plugin marketplace is.
+- Slash commands are not required to understand or run the system.
 
-## Phase 7: Validation and Test Plan
+## Phase 8: Validation
 
-Add `scripts/validate-plugin.py` to check:
+Replace plugin validation with workspace validation.
 
-- `.codex-plugin/plugin.json` parses and contains required fields.
-- All expected command files exist.
-- No runtime references to `.claude`, `Claude Code`, or `claude mcp` remain.
-- All command names in docs match the command files.
-- `strategies/*.example.md` remain paused by default.
-- `journal/.gitkeep` exists.
-- `.gitignore` excludes `.env`, logs, generated local state, and private workspace config.
+`scripts/validate-workspace.py` should check:
 
-Manual dry-run tests:
-
-1. Fresh install, no config:
-   - Run setup.
-   - Confirm workspace is created.
-   - Confirm examples are seeded.
-2. Proposal-only paper mode:
-   - Connect paper Alpaca.
-   - Activate one strategy.
-   - Run daily.
-   - Confirm memo is written and no order tools are called.
-3. Trading-with-confirmation paper mode:
-   - Run daily with a strategy that creates a tiny order.
-   - Confirm order ticket appears.
-   - Refuse confirmation and verify no order.
-   - Re-run and type exact confirmation.
-   - Confirm order ID is written to journal.
-4. Live mode guard:
-   - Verify the prompt clearly labels live trading before confirmation.
-   - Verify account mismatch blocks execution.
-5. Duplicate protection:
-   - Re-run the same daily command after execution.
-   - Verify it detects prior order IDs and does not auto-place duplicates.
+- required folders exist
+- required skills exist and have valid frontmatter
+- required strategy examples exist and ship paused
+- `config/workspace.example.json` is valid JSON
+- no secret-looking values are committed
+- no stale Claude runtime references remain
+- no normal-user docs still say to install via `/plugins`
 
 Acceptance criteria:
 
-- All validation checks pass.
-- Paper trading end-to-end works before any live-trading documentation claims are published.
-- Live trading path remains confirmation-gated.
+- `python3 scripts/validate-workspace.py` passes on a fresh clone.
+- Validation fails if a strategy example ships active.
+- Validation fails if docs point users to plugin marketplace install as the primary path.
 
-## Phase 8: Release Checklist
+## Phase 9: Migration From Current Repo
 
-1. Create public GitHub repo `FarzamHejaziK/codex-investment-plugin`.
-2. Set remotes:
+Concrete migration steps from the current plugin version:
 
-   ```bash
-   git remote add origin git@github.com:FarzamHejaziK/codex-investment-plugin.git
-   git remote set-url --push upstream DISABLED
-   ```
+1. Move or remove plugin marketplace files:
+   - `.codex-plugin/plugin.json`
+   - `.agents/plugins/marketplace.json`
+2. Remove command markdown after merging behavior into `skills/*/SKILL.md`.
+3. Rename scripts:
+   - `workspace-bootstrap.py` -> `setup-workspace.py`
+   - `validate-plugin.py` -> `validate-workspace.py`
+4. Add `config/` with examples.
+5. Update README and docs.
+6. Run validation.
+7. Commit and push.
 
-3. Commit the Codex conversion.
-4. Push `main` to `origin`.
-5. Tag `v0.1.0`.
-6. Open a GitHub issue for each known gap.
-7. Test install from the public repo.
-8. Update README badges from Claude repo to Codex repo.
+## Open Questions
 
-## Resolved Decisions
+1. Should the GitHub repo eventually be renamed from `codex-investment-plugin` to `codex-investment-workspace`?
+2. Should user-created strategy and journal files be committed by default, or should `.gitignore` exclude non-example strategy files and journal entries for privacy?
 
-1. The public repo is Codex-only; `.claude/` is removed.
-2. Trading mode is stored in workspace config, and every order batch still requires per-run exact confirmation.
-3. The default workspace is `~/Documents/codex-investment-plugin-workspace`.
-4. Scheduled runs are not implemented in this pass. If added later, they must remain proposal-only unless a human is present to confirm execution.
-5. SGOV funding sells and target buys are treated as ordered legs, not bracket orders. Funding sells must be submitted before dependent buys.
+## Recommended Next Implementation
 
-## First Implementation Pass
+Start with the smallest useful conversion:
 
-Completed in this pass:
+1. Update README and docs to say this is a workspace.
+2. Add `config/workspace.example.json`.
+3. Rename validation to `validate-workspace.py`.
+4. Make setup use repo root by default.
+5. Expand skills so they are self-contained.
+6. Remove plugin install instructions from the normal path.
 
-1. Create `commands/` and convert the four upstream command files.
-2. Add `AGENTS.md` from `CLAUDE.md`, adapted to Codex and optional trading mode.
-3. Add `scripts/workspace-bootstrap.py`.
-4. Update `README.md` and `docs/getting-started.md`.
-5. Update `docs/safety-and-limits.md` and add `docs/trading-mode.md`.
-6. Add `scripts/validate-plugin.py`.
-7. Run validation.
-8. Review all diffs against upstream for unintended behavior changes.
+After that, test from a fresh clone:
+
+```bash
+git clone https://github.com/FarzamHejaziK/codex-investment-plugin.git /tmp/codex-investment-workspace-test
+cd /tmp/codex-investment-workspace-test
+python3 scripts/validate-workspace.py
+python3 scripts/setup-workspace.py --json
+```

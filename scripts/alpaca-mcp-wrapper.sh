@@ -15,7 +15,7 @@ if [[ -z "${ALPACA_SECRET_KEY:-}" ]] && command -v security >/dev/null 2>&1; the
 fi
 
 if [[ -z "${ALPACA_API_KEY:-}" || -z "${ALPACA_SECRET_KEY:-}" ]]; then
-  echo "Missing ALPACA_API_KEY or ALPACA_SECRET_KEY. Run /investment-setup first." >&2
+  echo "Missing ALPACA_API_KEY or ALPACA_SECRET_KEY. Run the setup skill first." >&2
   exit 1
 fi
 

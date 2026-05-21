@@ -22,6 +22,9 @@ __pycache__/
 .investment-assistant-workspace.json
 *.tmp
 
+# Workspace-local generated config. Keep the example tracked.
+config/workspace.json
+
 # Optional — uncomment if you want your journal entries to stay LOCAL only
 # (the journal contains your portfolio snapshots, trade history, research notes;
 # you might not want all that pushed to a public GitHub fork)
